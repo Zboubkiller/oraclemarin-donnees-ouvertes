@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Carbone gratuit : qui reçoit les quotas de CO₂ de l'industrie française ?</title>
+<meta name="description" content="Quelques sociétés reçoivent l'essentiel des quotas de CO₂ gratuits de l'industrie française. Carte interactive des sites, données publiques 2013-2025.">
+<meta name="robots" content="noindex,nofollow">
+<link rel="stylesheet" href="leaflet/leaflet.css">
+<style>
+:root{--encre:#14202B;--gris:#5C6772;--trait:#D6DBE0;--fond:#F4F6F8;--blanc:#fff}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--encre);background:var(--fond);display:flex;flex-direction:column}
+a{color:inherit;text-underline-offset:3px}button{font:inherit;cursor:pointer}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;background:var(--blanc);border-bottom:1px solid var(--trait)}
+h1{font-size:19px;line-height:1.15;margin:0}h1 span{display:block;font-size:13px;font-weight:400;color:var(--gris);margin-top:2px}
+.btn{border:1px solid var(--encre);background:var(--blanc);padding:6px 12px;border-radius:6px;font-weight:600;font-size:13.5px}.btn:hover{background:var(--encre);color:#fff}
+.bandeau{background:#FFF4D6;border-bottom:1px solid #E0B94F;padding:5px 16px;font-size:12.5px}
+#cle{background:var(--encre);color:#fff;padding:12px 18px;font-size:16.5px;line-height:1.4}#cle b{color:#FFD27A}#cle small{display:block;color:#B9C3CD;font-size:12.5px;margin-top:5px}
+#app{flex:1;display:grid;grid-template-columns:400px 1fr;min-height:0}
+#panneau{overflow:auto;background:var(--blanc);border-right:1px solid var(--trait);padding:14px 16px 24px}
+#carte{min-height:0;background:#dde2e7}.leaflet-tile-pane{filter:grayscale(.95) contrast(.88) brightness(1.06)}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.kpi{background:var(--fond);border-radius:8px;padding:8px 10px}.kpi b{display:block;font-size:19px;line-height:1.1}.kpi span{font-size:12px;color:var(--gris)}
+.lab{font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--gris);margin:14px 0 5px}
+.seg{display:inline-flex;border:1px solid var(--encre);border-radius:6px;overflow:hidden}.seg button{border:0;background:#fff;padding:5px 10px;font-size:13px;font-weight:600}.seg button[aria-pressed=true]{background:var(--encre);color:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:5px}.chip{border:1px solid var(--trait);background:#fff;border-radius:99px;padding:3px 10px;font-size:12.5px}.chip[aria-pressed=true]{background:var(--encre);border-color:var(--encre);color:#fff}
+input[type=search]{width:100%;padding:8px 10px;border:1px solid var(--trait);border-radius:6px;font:inherit}
+.barre{display:flex;height:22px;border-radius:5px;overflow:hidden;margin:6px 0 4px;background:#E6EAEE}.barre i{display:block;height:100%;cursor:pointer;border-right:1px solid #fff}.barre i:hover{opacity:.8}
+.rang{list-style:none;margin:0;padding:0}.rang li{display:grid;grid-template-columns:14px 1fr auto;gap:8px;align-items:center;padding:6px 3px;border-bottom:1px solid #EEF0F2;cursor:pointer}.rang li:hover{background:var(--fond)}
+.rang small{color:var(--gris);display:block;font-size:12px}.pt{width:11px;height:11px;border-radius:50%}.v{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}.v small{font-weight:400}
+.fil{height:5px;background:#E6EAEE;border-radius:3px;margin-top:3px}.fil i{display:block;height:100%;border-radius:3px}
+.hist{display:block;width:100%;text-align:left;border:1px solid var(--trait);background:#fff;border-radius:8px;padding:8px 11px;margin:5px 0;font-size:13.5px}.hist:hover{border-color:var(--encre);background:var(--fond)}.hist b{display:block;font-size:14px}.hist span{color:var(--gris);font-size:12.5px}
+.retour{margin-bottom:8px}.det h2{font-size:18px;margin:0 0 2px}.det .sous{color:var(--gris);font-size:13.5px}
+.badge{display:inline-block;font-size:11.5px;font-weight:700;color:#fff;border-radius:4px;padding:1px 7px;margin:6px 4px 0 0}
+.grille{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.grille div{background:var(--fond);border-radius:8px;padding:8px 10px}.grille b{display:block;font-size:17px}.grille span{font-size:12px;color:var(--gris)}
+.note{font-size:12.5px;color:var(--gris);margin:6px 0}.note.alerte{background:#FFF4D6;border-radius:6px;padding:6px 9px;color:var(--encre)}
+.ann{margin:4px 0;padding:5px 9px;border-left:4px solid #C9CFD6;background:var(--fond);border-radius:0 6px 6px 0;font-size:13px}.ann small{color:var(--gris)}
+svg text{font:11px system-ui,sans-serif;fill:#5C6772}
+dialog{border:0;border-radius:12px;max-width:660px;width:calc(100% - 28px);padding:20px 22px;box-shadow:0 20px 60px rgba(0,0,0,.3);max-height:88vh;overflow:auto}dialog::backdrop{background:rgba(20,32,43,.5)}dialog h2{margin-top:0}dialog h3{margin:14px 0 4px;font-size:15px}dialog p,dialog li{font-size:14px}
+@media(max-width:860px){#app{grid-template-columns:1fr;grid-template-rows:55vh auto}#carte{order:-1}#panneau{border-right:0;border-top:1px solid var(--trait)}header{padding:8px 12px}h1{font-size:16px}#cle{font-size:14.5px;padding:10px 12px}}
+</style>
+</head>
+<body>
+<header><h1>Carbone gratuit<span>Qui reçoit les quotas de CO₂ de l'industrie française ? 2013-2025</span></h1><button class="btn" id="info">Méthode et limites</button></header>
+<div class="bandeau"><b>Version de travail.</b> Chiffres à vérifier avant toute citation (voir « Méthode et limites »).</div>
+<div id="cle"></div>
+<div id="app"><aside id="panneau" aria-live="polite"></aside><div id="carte" role="application" aria-label="Carte des installations soumises au marché européen du carbone en France"></div></div>
+<dialog id="dlg">
+<h2>Méthode et limites</h2>
+<h3>Ce que montre la carte</h3>
+<p>Chaque rond est une installation industrielle française soumise au marché européen du carbone (SEQE-UE). Sa taille est proportionnelle aux quotas gratuits qu'elle a reçus (ou à ses émissions vérifiées). Sa couleur indique le groupe auquel elle appartient, pour les dix premiers groupes ; les autres sites sont en gris.</p>
+<h3>Un quota gratuit n'est pas un chèque</h3>
+<p>C'est un droit d'émettre une tonne de CO₂ que l'entreprise n'a pas à acheter. La « valeur indicative » multiplie les quotas par une fourchette de prix de marché (65 à 80 € la tonne) : c'est un ordre de grandeur de l'avantage, pas une somme reçue. Le dispositif réserve l'allocation gratuite aux secteurs considérés comme exposés à la concurrence internationale (« fuite de carbone ») : c'est ce qui explique en partie la concentration sur l'acier, le ciment et le raffinage. L'allocation gratuite diminue progressivement et change à partir de 2026 (mécanisme d'ajustement carbone aux frontières) : ne pas extrapoler.</p>
+<h3>Sources</h3>
+<ul>
+<li>Quotas alloués gratuitement et émissions vérifiées : registre de l'Union européenne (EU Transaction Log), paquet de données publié sur Zenodo le 21 juillet 2026, licence CC-BY 4.0. Les données de la dernière année peuvent être provisoires.</li>
+<li>Prix : environ 65 € la tonne en moyenne en 2024 (Agence européenne pour l'environnement), plus de 80 € en 2022 et 2023 (EASA), environ 73 € sur les onze premiers mois de 2025 (presse spécialisée).</li>
+<li>Aides ADEME et annonces d'emplois (informations secondaires) : données ouvertes de l'ADEME, BODACC, presse et accords d'entreprise, rapprochés par SIREN.</li>
+<li>Installations classées : API Géorisques, installation la plus proche (moins de 3 km) de la même société.</li>
+</ul>
+<h3>Limites</h3>
+<ul>
+<li>Les installations sont rattachées à une société par le SIREN du titulaire du compte. Le regroupement en groupes se fait par le nom (ArcelorMittal, TotalEnergies, Lafarge, Heidelberg, Vicat, Eqiom, Tereos) : d'autres filiales d'un même groupe peuvent rester séparées.</li>
+<li>Les coordonnées sont géocodées et peuvent être approximatives.</li>
+<li>Seuls les sites avec des émissions ou une allocation entre 2021 et 2025 figurent ici (1 055 installations, 636 sociétés).</li>
+<li>La concentration des quotas gratuits reflète en partie celle des émissions : les mêmes sociétés émettent beaucoup. La carte compare les deux parts pour que le lecteur en juge.</li>
+</ul>
+<p><a href="data.json">Télécharger les données (JSON)</a> · Édité par Quentin Closset, Perros-Guirec. <button class="btn" id="ferme" style="float:right">Fermer</button></p>
+</dialog>
+<script src="leaflet/leaflet.js"></script>
+<script>
+const PAL=['#B3261E','#E8710A','#1A73E8','#188038','#9334E6','#00838F','#C2185B','#8A6D00','#5D4037','#455A64'],REST='#AEB9C4';
+const GROUPES=['arcelormittal','totalenergies','lafarge','heidelberg','vicat','eqiom','tereos'];
+const SECT={ciment:'Ciment et chaux',acier:'Acier et fonte',raffinage:'Raffinage',verre:'Verre et céramique',papier:'Papier',chimie:'Chimie',metaux:'Métaux non ferreux',energie:'Énergie et combustion',autre:'Autres'};
+const TYPES={'plan social':'Plan social','fermeture':'Fermeture','liquidation':'Liquidation','redressement':'Redressement','sauvegarde':'Sauvegarde'};
+const MOIS=['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+const PRIX=[65,80];
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const mt=x=>x>=1e6?(x/1e6).toLocaleString('fr-FR',{maximumFractionDigits:2})+' Mt':x>=1e3?Math.round(x/1e3).toLocaleString('fr-FR')+' kt':Math.round(x)+' t';
+const eur=x=>x>=1000?(x/1000).toLocaleString('fr-FR',{maximumFractionDigits:1})+' Md€':Math.round(x).toLocaleString('fr-FR')+' M€';
+const pc=x=>Math.round(x*100);
+const mois=d=>MOIS[+d.slice(5,7)-1]+' '+d.slice(0,4);
+const nm=i=>i.n.length>=50?i.n+'…':i.n;
+let D=[],AN=[],SOC={},GRP={},GL=[],BIL={},S={per:'cum',met:'g',col:'groupe',sect:new Set(),q:'',sel:null,hl:null},layer,markers=new Map();
+const map=L.map('carte',{zoomControl:true,tap:false,preferCanvas:true,minZoom:5}).setView([46.7,2.4],6);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap',maxZoom:17}).addTo(map);
+const canvas=L.canvas({padding:.4,tolerance:6});layer=L.layerGroup().addTo(map);
+const val=(i,met=S.met,per=S.per)=>per==='cum'?i[met].slice(8).reduce((a,b)=>a+b,0):i[met][12];
+const grp=n=>{const x=(n||'').toLowerCase();return GROUPES.find(k=>x.includes(k))||('s:'+x)};
+const CV=[[1.05,'#E8710A','Plus de quotas que d\'émissions (105 % et plus)'],[.75,'#1A5FB4','Presque tout couvert (75 à 105 %)'],[.25,'#8FBBF0','En partie couvert (25 à 75 %)'],[0,'#B3261E','Presque tout à acheter (moins de 25 %)']];
+const couv=i=>{const v=val(i,'v','cum'),g=val(i,'g','cum');if(!v)return '#C9CFD6';const r=g/v;return CV.find(c=>r>=c[0])[1]};
+const couleur=i=>S.col==='couv'?couv(i):(GRP[i.gk]&&GRP[i.gk].col||REST);
+const rayon=i=>{const v=S.per==='cum'?val(i)/5:val(i);return Math.max(3,Math.min(30,2.2+Math.sqrt(v/1e3)*.42))};
+const visible=i=>(!S.sect.size||S.sect.has(i.k))&&(!S.q||(nm(i)+' '+i.s+' '+i.c).toLowerCase().includes(S.q));
+const somme=(L_,f)=>L_.reduce((a,x)=>a+f(x),0);
+
+function bilan(){
+  D.forEach(i=>{i.gk=grp(i.s)});
+  SOC={};D.forEach(i=>{const s=SOC[i.siren]=SOC[i.siren]||{siren:i.siren,nom:i.s,g:0,v:0,ids:[],sites:0,gy:AN.map(()=>0),gk:i.gk};s.g+=val(i,'g','cum');s.v+=val(i,'v','cum');s.ids.push(i.id);s.sites++;i.g.forEach((x,k)=>s.gy[k]+=x)});
+  const SL=Object.values(SOC).sort((a,b)=>b.g-a.g),tot=somme(SL,s=>s.g),totv=somme(SL,s=>s.v);
+  SL.forEach((s,k)=>s.rang=k+1);
+  let c=0,n50=0,n80=0;SL.forEach((s,k)=>{c+=s.g;if(!n50&&c>=tot/2)n50=k+1;if(!n80&&c>=.8*tot)n80=k+1});
+  const top10=SL.slice(0,10),half=SL.slice(Math.floor(SL.length/2));
+  GRP={};SL.forEach(s=>{const g=GRP[s.gk]=GRP[s.gk]||{key:s.gk,label:s.gk.startsWith('s:')?s.nom:s.gk[0].toUpperCase()+s.gk.slice(1).replace('arcelormittal','ArcelorMittal').replace('totalenergies','TotalEnergies'),g:0,v:0,ids:[],soc:0,sites:0};g.g+=s.g;g.v+=s.v;g.ids.push(...s.ids);g.soc++;g.sites+=s.sites});
+  GL=Object.values(GRP).sort((a,b)=>b.g-a.g);GL.forEach((g,k)=>{g.col=k<10?PAL[k]:null;g.rang=k+1});
+  const lor=[[0,0]];c=0;SL.forEach((s,k)=>{c+=s.g;lor.push([(k+1)/SL.length,c/tot])});
+  const t10y=AN.map((_,k)=>{const ty=somme(SL,s=>s.gy[k]);return ty?somme(top10,s=>s.gy[k])/ty:0});
+  const natg=AN.map((_,k)=>somme(D,i=>i.g[k])),natv=AN.map((_,k)=>somme(D,i=>i.v[k]));
+  const g10=somme(top10,s=>s.g),v10=somme(top10,s=>s.v),gR=tot-g10,vR=totv-v10;
+  const sec={};D.forEach(i=>sec[i.k]=(sec[i.k]||0)+val(i,'g','cum'));
+  BIL={SL,tot,totv,n50,n80,top10,p10:pc(g10/tot),pv10:pc(v10/totv),cov10:pc(g10/v10),covR:pc(gR/vR),half,phalf:(100*somme(half,s=>s.g)/tot),lor,t10y,natg,natv,sec,g10};
+  const G0=GL[0];
+  $('#cle').innerHTML=`<b>${n50} sociétés</b> reçoivent la moitié des quotas de CO₂ gratuits de l'industrie française (2021-2025). <b>${esc(G0.label)}</b> en capte ${pc(G0.g/tot)} %.<small>Les 10 premières sociétés : ${BIL.p10} % des quotas gratuits pour ${BIL.pv10} % des émissions. La moitié des sociétés (${half.length}) se partagent ${BIL.phalf.toLocaleString('fr-FR',{maximumFractionDigits:1})} %. Un quota gratuit est un droit d'émettre, pas une somme versée.</small>`;
+}
+function dessine(){
+  layer.clearLayers();const L_=D.filter(visible).sort((a,b)=>(S.hl?(S.hl.has(a.id)-S.hl.has(b.id)):0)||val(b)-val(a));
+  L_.forEach(i=>{let m=markers.get(i.id);
+    if(!m){m=L.circleMarker([i.la,i.lo],{renderer:canvas,weight:1.2,color:'#fff',fillOpacity:.8});m.on('click',()=>choisit(i.id,true));markers.set(i.id,m)}
+    const dim=S.hl&&!S.hl.has(i.id),on=S.hl&&!dim,gr=GRP[i.gk];
+    m.setRadius(rayon(i)*(dim?.8:1));m.setStyle({fillColor:couleur(i),fillOpacity:dim?.1:(S.col==='couv'||(gr&&gr.col)?.85:.6),opacity:dim?.2:1,weight:S.sel===i.id?3:(on?2:1),color:(S.sel===i.id||on)?'#14202B':'#fff'});
+    m.bindTooltip(esc(nm(i))+' · '+esc(i.s)+'<br>'+mt(val(i))+(S.per==='cum'?' (2021-2025)':' (2025)')+' · '+(100*val(i,'g','cum')/BIL.tot).toLocaleString('fr-FR',{maximumFractionDigits:1})+' % du total',{sticky:true});layer.addLayer(m)});
+  return L_;
+}
+function barreHtml(){const parts=GL.slice(0,10).map(g=>`<i data-g="${esc(g.key)}" title="${esc(g.label)} : ${pc(g.g/BIL.tot)} %" style="width:${100*g.g/BIL.tot}%;background:${g.col}"></i>`).join('');
+  const reste=BIL.tot-somme(GL.slice(0,10),g=>g.g);return `<div class="barre">${parts}<i title="Autres : ${pc(reste/BIL.tot)} %" style="width:${100*reste/BIL.tot}%;background:#D9DFE5;cursor:default"></i></div>`}
+function accueil(){
+  S.hl=null;const L_=dessine(),tot=somme(L_,i=>val(i,'g','cum'));
+  const sc=Object.entries(SECT).map(([k,n])=>{const c=D.filter(i=>i.k===k).length;return c?`<button class="chip" data-k="${k}" aria-pressed="${S.sect.has(k)}">${n} · ${c}</button>`:''}).join('');
+  $('#panneau').innerHTML=`
+  <div class="kpis"><div class="kpi"><b>${mt(tot)}</b><span>de quotas gratuits 2021-2025${S.sect.size||S.q?' (sites filtrés)':''}</span></div><div class="kpi"><b>${eur(tot*PRIX[0]/1e6)} à ${eur(tot*PRIX[1]/1e6)}</b><span>valeur indicative (65 à 80 €/t)</span></div></div>
+  <div class="lab">Part de chaque groupe dans les quotas gratuits</div>${barreHtml()}
+  <ul class="rang">${GL.slice(0,10).map(g=>`<li data-g="${esc(g.key)}"><span class="pt" style="background:${g.col}"></span><span>${esc(g.label)}<small>${g.soc>1?g.soc+' sociétés, ':''}${g.sites} site${g.sites>1?'s':''}</small><div class="fil"><i style="width:${100*g.g/GL[0].g}%;background:${g.col}"></i></div></span><span class="v">${pc(g.g/BIL.tot)} %<br><small>${mt(g.g)}</small></span></li>`).join('')}
+  <li style="cursor:default"><span class="pt" style="background:#D9DFE5"></span><span>Les ${BIL.SL.length-GL.slice(0,10).reduce((a,g)=>a+g.soc,0)} autres sociétés<small>en gris sur la carte</small></span><span class="v">${pc(1-somme(GL.slice(0,10),g=>g.g)/BIL.tot)} %</span></li></ul>
+  <div class="lab">Pour comprendre en un clic</div>
+  <a class="hist" href="radar.html" style="display:block;text-decoration:none;color:inherit"><b>Radar : aides publiques et lobbying des plus gros titulaires</b><span>ADEME, contrats de décarbonation, déclarations au registre HATVP</span></a>
+  <button class="hist" data-h="moitie"><b>${BIL.n50} sociétés = la moitié des quotas</b><span>et ${BIL.n80} sociétés = 80 % : voir où elles sont</span></button>
+  <button class="hist" data-h="grp0"><b>${esc(GL[0].label)} : ${pc(GL[0].g/BIL.tot)} % à lui seul</b><span>${GL[0].soc} sociétés regroupées par le nom, ${GL[0].sites} sites</span></button>
+  <button class="hist" data-h="ecart"><b>Top 10 : ${BIL.p10} % des quotas, ${BIL.pv10} % des émissions</b><span>couverts gratuitement à ${BIL.cov10} %, contre ${BIL.covR} % pour toutes les autres</span></button>
+  <button class="hist" data-h="queue"><b>La moitié des sociétés se partagent ${BIL.phalf.toLocaleString('fr-FR',{maximumFractionDigits:1})} %</b><span>${BIL.half.length} sociétés, plus de ${D.filter(i=>BIL.half.some(s=>s.siren===i.siren)).length} sites</span></button>
+  <button class="hist" data-h="secteurs"><b>Trois secteurs captent l'essentiel</b><span>acier, énergie, ciment : ${pc((BIL.sec.acier+BIL.sec.energie+BIL.sec.ciment)/BIL.tot)} % des quotas</span></button>
+  <button class="hist" data-h="stable"><b>Une concentration stable depuis 2013</b><span>le top 10 : ${pc(BIL.t10y[0])} % en 2013, ${pc(BIL.t10y[12])} % en 2025</span></button>
+  <button class="hist" data-h="ecart2"><b>Plus généreux pour les gros ? Le secteur, pas la taille</b><span>couverture gratuite par secteur et, à secteur égal, gros contre petits sites</span></button>
+  <button class="hist" data-h="surplus"><b>Les plus gros surplus et déficits</b><span>qui reçoit bien plus qu'il n'émet, qui achète presque tout</span></button>
+  <div class="lab">Couleur des ronds</div>
+  <div class="seg" id="sCol"><button data-c="groupe" aria-pressed="${S.col==='groupe'}">Par groupe</button><button data-c="couv" aria-pressed="${S.col==='couv'}">Par couverture gratuite</button></div>
+  ${S.col==='couv'?'<div class="note">'+CV.map(c=>`<span style="color:${c[1]}">●</span> ${c[2]}`).join('<br>')+'<br><span style="color:#C9CFD6">●</span> Pas d\'émissions vérifiées</div>':''}
+  <div class="lab">Taille des ronds</div>
+  <div class="seg" id="sMet"><button data-m="g" aria-pressed="${S.met==='g'}">Quotas gratuits</button><button data-m="v" aria-pressed="${S.met==='v'}">Émissions vérifiées</button></div>
+  <div class="seg" id="sPer" style="margin-left:6px"><button data-p="cum" aria-pressed="${S.per==='cum'}">2021-2025</button><button data-p="y25" aria-pressed="${S.per==='y25'}">2025</button></div>
+  <div class="lab">Secteur</div><div class="chips" id="chips">${sc}</div>
+  <div class="lab">Rechercher un site, une société, une commune</div><input type="search" id="q" placeholder="Ex. Dunkerque, Heidelberg, Ranville…" value="${esc(S.q)}">`;
+  $('#sCol').onclick=e=>{const c=e.target.dataset.c;if(c){S.col=c;accueil()}};$('#sMet').onclick=e=>{const m=e.target.dataset.m;if(m){S.met=m;accueil()}};$('#sPer').onclick=e=>{const p=e.target.dataset.p;if(p){S.per=p;accueil()}};
+  $('#chips').onclick=e=>{const k=e.target.dataset.k;if(k){S.sect.has(k)?S.sect.delete(k):S.sect.add(k);accueil()}};
+  const q=$('#q');q.oninput=()=>{S.q=q.value.trim().toLowerCase();clearTimeout(q.t);q.t=setTimeout(()=>{const pos=q.selectionStart;accueil();const q2=$('#q');q2.focus();q2.setSelectionRange(pos,pos)},250)};
+  document.querySelectorAll('.rang li[data-g]').forEach(li=>li.onclick=()=>groupe(li.dataset.g));document.querySelectorAll('.barre i[data-g]').forEach(i=>i.onclick=()=>groupe(i.dataset.g));
+  document.querySelectorAll('.hist').forEach(b=>b.onclick=()=>histoire(b.dataset.h));
+}
+function liste(ids){const L_=D.filter(i=>ids.has?ids.has(i.id):ids.includes(i.id)).sort((a,b)=>val(b,'g','cum')-val(a,'g','cum'));
+  return {L_,html:`<ul class="rang">${L_.slice(0,14).map(i=>`<li data-id="${i.id}"><span class="pt" style="background:${couleur(i)}"></span><span>${esc(nm(i))}<small>${esc(i.s)} · ${esc(i.c)}</small></span><span class="v">${mt(val(i,'g','cum'))}</span></li>`).join('')}</ul>`}}
+function scene(titre,desc,ids,haut){
+  S.sel=null;S.hl=new Set(ids);history.replaceState(null,'',location.pathname);dessine();
+  const {L_,html}=liste(S.hl);
+  $('#panneau').innerHTML=`<button class="btn retour" id="retour">← Retour</button><div class="det"><h2>${titre}</h2><div class="note">${desc}</div>${haut||''}<div class="lab">Sites concernés (${L_.length}), par quotas gratuits 2021-2025</div>${html}</div>`;
+  $('#retour').onclick=()=>accueil();document.querySelectorAll('.rang li[data-id]').forEach(li=>li.onclick=()=>choisit(li.dataset.id,true));
+  const pts=L_.map(i=>[i.la,i.lo]);if(pts.length>1&&pts.length<400)map.flyToBounds(pts,{padding:[40,40],maxZoom:8,duration:.7});else if(pts.length===1)map.flyTo(pts[0],9);
+}
+function panneauSimple(titre,desc,corps){S.hl=null;dessine();$('#panneau').innerHTML=`<button class="btn retour" id="retour">← Retour</button><div class="det"><h2>${titre}</h2><div class="note">${desc}</div>${corps}</div>`;$('#retour').onclick=()=>accueil();}
+function groupe(k){const g=GRP[k];if(!g)return;const L_=Object.values(SOC).filter(s=>s.gk===k).sort((a,b)=>b.g-a.g);
+  scene(esc(g.label),`${pc(g.g/BIL.tot)} % des quotas gratuits 2021-2025 (${mt(g.g)}, soit ${eur(g.g*PRIX[0]/1e6)} à ${eur(g.g*PRIX[1]/1e6)} en valeur indicative) pour ${mt(g.v)} d'émissions vérifiées, soit ${pc(g.g/g.v)} % couverts gratuitement. ${g.soc>1?`Sociétés regroupées par le nom : ${L_.map(s=>esc(s.nom)+' ('+mt(s.g)+')').join(', ')}.`:''}`,g.ids)}
+function histoire(h){
+  if(h==='ecart2'||h==='surplus')return histoire2(h);
+  const B=BIL;
+  if(h==='moitie')scene(`${B.n50} sociétés reçoivent la moitié des quotas`,`${B.n50} sociétés sur ${B.SL.length} détiennent 50 % des quotas gratuits 2021-2025 ; ${B.n80} sociétés en détiennent 80 %. Les ronds cerclés sont leurs sites.`,B.SL.slice(0,B.n50).flatMap(s=>s.ids));
+  else if(h==='grp0'){groupe(GL[0].key)}
+  else if(h==='ecart')scene('Plus de quotas gratuits que leur part des émissions',`Les 10 premières sociétés reçoivent ${B.p10} % des quotas gratuits mais n'émettent que ${B.pv10} % des émissions de ces sites : leurs émissions sont couvertes gratuitement à ${B.cov10} %, contre ${B.covR} % pour toutes les autres. Le dispositif réserve l'allocation gratuite aux secteurs jugés exposés à la concurrence internationale (acier, ciment, raffinage…), alors que les producteurs d'électricité (${B.SL.filter(s=>s.g===0&&s.v>5e6).map(s=>esc(s.nom)).join(', ')}) émettent beaucoup sans aucun quota gratuit. L'écart tient surtout au secteur, pas à la taille : voir le parcours « Le secteur, pas la taille ».`,B.top10.flatMap(s=>s.ids));
+  else if(h==='queue')scene('La moitié des sociétés se partagent presque rien',`${B.half.length} sociétés (la moitié inférieure) reçoivent ensemble ${B.phalf.toLocaleString('fr-FR',{maximumFractionDigits:1})} % des quotas gratuits : de petites installations de combustion, de verre ou de papier.`,B.half.flatMap(s=>s.ids));
+  else if(h==='secteurs'){const L_=Object.entries(B.sec).sort((a,b)=>b[1]-a[1]);panneauSimple('Trois secteurs captent l\'essentiel',`Part des quotas gratuits 2021-2025 par secteur d'activité. Cliquez sur un secteur pour le voir sur la carte.`,`<ul class="rang">${L_.map(([k,v])=>`<li data-k="${k}"><span class="pt" style="background:#455A64"></span><span>${esc(SECT[k])}<div class="fil"><i style="width:${100*v/L_[0][1]}%;background:#455A64"></i></div></span><span class="v">${pc(v/B.tot)} %<br><small>${mt(v)}</small></span></li>`).join('')}</ul>`);
+    document.querySelectorAll('.rang li[data-k]').forEach(li=>li.onclick=()=>{S.sect=new Set([li.dataset.k]);accueil();});}
+  else if(h==='stable')panneauSimple('Une concentration stable depuis 2013',`Part des 10 premières sociétés (classement 2021-2025) dans les quotas gratuits de l'ensemble des sites, année par année : de ${pc(B.t10y[0])} % en 2013 à ${pc(B.t10y[12])} % en 2025, avec un pic à ${pc(Math.max(...B.t10y))} %. Le total des quotas gratuits baisse (${mt(B.natg[0])} en 2013, ${mt(B.natg[12])} en 2025) : la concentration ne vient pas d'une hausse de leur allocation.`,courbe());
+}
+function histoire2(h){
+  const B=BIL;S.col='couv';S.hl=null;dessine();
+  const cov=(L_)=>{const g=somme(L_,i=>val(i,'g','cum')),v=somme(L_,i=>val(i,'v','cum'));return v?g/v:0};
+  if(h==='ecart2'){
+    const secs=Object.keys(SECT).map(k=>({k,L_:D.filter(i=>i.k===k&&val(i,'v','cum')>0)})).filter(x=>x.L_.length).sort((a,b)=>somme(b.L_,i=>val(i,'v','cum'))-somme(a.L_,i=>val(i,'v','cum')));
+    const lignes=secs.map(x=>{let d='';if(x.L_.length>=8){const t=x.L_.slice().sort((a,b)=>val(b,'v','cum')-val(a,'v','cum')),m=Math.floor(t.length/2);d=`<small>gros sites ${pc(cov(t.slice(0,m)))} % · petits sites ${pc(cov(t.slice(m)))} %</small>`}
+      return `<li style="cursor:default"><span class="pt" style="background:#455A64"></span><span>${esc(SECT[x.k])} <small>(${x.L_.length} sites)</small>${d}<div class="fil"><i style="width:${Math.min(100,100*cov(x.L_)/1.6)}%;background:#455A64"></i></div></span><span class="v">${pc(cov(x.L_))} %</span></li>`}).join('');
+    const SLv=B.SL.filter(s=>s.v>0),tr=[['plus de 1 Mt',1e6,1e12],['de 200 kt à 1 Mt',2e5,1e6],['moins de 200 kt',0,2e5]].map(([n,a,b])=>{const X=SLv.filter(s=>s.v>=a&&s.v<b);return `${n} : <b>${pc(somme(X,s=>s.g)/somme(X,s=>s.v))} %</b> (${X.length} sociétés)`}).join(' · ');
+    $('#panneau').innerHTML=`<button class="btn retour" id="retour">← Retour</button><div class="det"><h2>Plus généreux pour les gros ? Le secteur, pas la taille</h2>
+    <div class="note">Part des émissions vérifiées 2021-2025 couverte par des quotas gratuits. <b>Par taille de société</b> : ${tr}. Pas de préférence générale pour les gros : la couverture dépend d'abord du secteur (liste des secteurs exposés à la concurrence internationale) et de l'activité de référence. Les ronds sont colorés par couverture.</div>
+    <div class="lab">Couverture par secteur (et, à secteur égal, gros contre petits sites)</div><ul class="rang">${lignes}</ul>
+    <div class="note">À secteur égal, l'acier favorise les gros sites ; en chimie et en papier, ce sont les petits sites qui sont les mieux couverts ; en ciment et en verre, aucune différence. Les producteurs d'électricité n'ont aucun quota gratuit.</div></div>`;
+    $('#retour').onclick=()=>accueil();
+  }else{
+    const SLv=B.SL.filter(s=>s.v>0),sur=SLv.slice().sort((a,b)=>(b.g-b.v)-(a.g-a.v)).slice(0,6),def=SLv.slice().sort((a,b)=>(a.g-a.v)-(b.g-b.v)).slice(0,6),
+      pet=SLv.filter(s=>s.v>=2e4&&s.v<2e5&&s.g/s.v>3).sort((a,b)=>b.g/b.v-a.g/a.v).slice(0,6);
+    const li=(s,mode)=>`<li data-s="${s.siren}"><span class="pt" style="background:${mode==='d'?'#B3261E':'#E8710A'}"></span><span>${esc(s.nom)}<small>${pc(s.g/s.v)} % couvert · émissions ${mt(s.v)}</small></span><span class="v">${s.g-s.v>0?'+':''}${mt(s.g-s.v)}</span></li>`;
+    $('#panneau').innerHTML=`<button class="btn retour" id="retour">← Retour</button><div class="det"><h2>Les plus gros surplus et déficits</h2>
+    <div class="note">Quotas gratuits moins émissions vérifiées, cumul 2021-2025, par société. Un surplus peut être revendu ou conservé ; un déficit oblige à acheter des quotas. Cliquez sur une société pour voir ses sites.</div>
+    <div class="lab">Plus gros surplus</div><ul class="rang">${sur.map(s=>li(s,'s')).join('')}</ul>
+    <div class="lab">Petites sociétés (20 à 200 kt d'émissions) avec plus de 300 % de couverture</div><ul class="rang">${pet.map(s=>li(s,'s')).join('')}</ul>
+    <div class="lab">Plus gros déficits (achètent leurs quotas)</div><ul class="rang">${def.map(s=>li(s,'d')).join('')}</ul>
+    <div class="note">Un surplus important sur un petit site peut venir d'une activité réduite ou arrêtée alors que l'allocation était calculée sur une activité passée : à vérifier site par site. Quelques sites très peu émetteurs (moins de 20 kt) affichent des couvertures de plusieurs milliers de % : ils sont exclus de cette liste.</div></div>`;
+    $('#retour').onclick=()=>accueil();
+    document.querySelectorAll('.rang li[data-s]').forEach(l=>l.onclick=()=>{const so=SOC[l.dataset.s];scene(esc(so.nom),`${pc(so.g/so.v)} % de ses émissions couvertes gratuitement : ${mt(so.g)} de quotas gratuits pour ${mt(so.v)} d'émissions vérifiées (2021-2025).`,so.ids)});
+  }
+}
+function courbe(){const W=330,Hh=150,m={l:30,r:8,t:10,b:22},y=v=>Hh-m.b-(Hh-m.t-m.b)*v,x=k=>m.l+(W-m.l-m.r)*k/(AN.length-1),mn=.4,mx=Math.max(...BIL.t10y)*1.05;
+  const yy=v=>Hh-m.b-(Hh-m.t-m.b)*(v-mn)/(mx-mn),pts=BIL.t10y.map((v,k)=>[x(k),yy(v)]);
+  return `<svg viewBox="0 0 ${W} ${Hh}" width="100%" role="img" aria-label="Part du top 10 dans les quotas gratuits par année"><line x1="${m.l}" x2="${W-m.r}" y1="${Hh-m.b}" y2="${Hh-m.b}" stroke="#D6DBE0"/><text x="${m.l-4}" y="${yy(mx/1.05)+4}" text-anchor="end">${pc(mx/1.05)} %</text><text x="${m.l-4}" y="${Hh-m.b}" text-anchor="end">${pc(mn)} %</text><polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="#B3261E" stroke-width="2"/>${pts.map((p,k)=>`<circle cx="${p[0]}" cy="${p[1]}" r="2.8" fill="#B3261E"><title>${AN[k]} : ${pc(BIL.t10y[k])} %</title></circle>`).join('')}${AN.map((a,k)=>k%2===0?`<text x="${x(k)}" y="${Hh-6}" text-anchor="middle">${a}</text>`:'').join('')}</svg>`}
+function graph(i){
+  const W=330,Hh=150,m={l:34,r:8,t:10,b:20},mx=Math.max(1,...i.g,...i.v)*1.08,w=(W-m.l-m.r)/AN.length,y=v=>Hh-m.b-(Hh-m.t-m.b)*v/mx;
+  const bars=i.g.map((v,k)=>`<rect x="${m.l+k*w+1}" y="${y(v)}" width="${w-2}" height="${Hh-m.b-y(v)}" fill="#2A7F8E" opacity=".85"><title>${AN[k]} : ${mt(v)} gratuits</title></rect>`).join('');
+  const pts=i.v.map((v,k)=>[m.l+k*w+w/2,y(v)]),line=pts.map(p=>p.join(',')).join(' ');
+  const dots=pts.map((p,k)=>`<circle cx="${p[0]}" cy="${p[1]}" r="2.6" fill="#C8372D"><title>${AN[k]} : ${mt(i.v[k])} émises</title></circle>`).join('');
+  const xl=AN.map((a,k)=>k%2===0?`<text x="${m.l+k*w+w/2}" y="${Hh-5}" text-anchor="middle">${a}</text>`:'').join('');
+  return `<svg viewBox="0 0 ${W} ${Hh}" width="100%" role="img" aria-label="Quotas gratuits et émissions vérifiées par année"><line x1="${m.l}" x2="${W-m.r}" y1="${Hh-m.b}" y2="${Hh-m.b}" stroke="#D6DBE0"/><text x="${m.l-4}" y="${m.t+8}" text-anchor="end">${mt(mx/1.08)}</text><text x="${m.l-4}" y="${Hh-m.b}" text-anchor="end">0</text>${bars}<polyline points="${line}" fill="none" stroke="#C8372D" stroke-width="1.8"/>${dots}${xl}</svg>
+  <div class="note"><span style="color:#2A7F8E">■</span> Quotas gratuits · <span style="color:#C8372D">●</span> Émissions vérifiées</div>`;
+}
+const annHtml=L_=>L_.length?L_.map(a=>`<div class="ann"><b>${esc(TYPES[a.t]||a.t)}</b> · ${esc(mois(a.d))}${a.n?' · '+a.n.toLocaleString('fr-FR')+' emplois':''}${a.c?' · '+esc(a.c):''}<br><small>${a.u?`<a href="${esc(a.u)}" target="_blank" rel="noopener">${esc(a.s||'source')}</a>`:esc(a.s)}</small></div>`).join(''):'';
+function autres(i){const L_=D.filter(x=>x.siren===i.siren&&x.id!==i.id).sort((a,b)=>val(b,'g','cum')-val(a,'g','cum'));
+  return L_.length?`<div class="lab">Autres sites de la société (${L_.length}), cerclés sur la carte</div><ul class="rang">${L_.slice(0,8).map(x=>`<li data-id="${x.id}"><span class="pt" style="background:${couleur(x)}"></span><span>${esc(x.c)}</span><span class="v">${mt(val(x,'g','cum'))}</span></li>`).join('')}</ul>`:''}
+let SOLS={};
+function solsHtml(i){const o=SOLS[i.id];if(!o)return '';const li=(L,k)=>L.map(x=>`<li><a href="${esc(x.fiche)}" target="_blank" rel="noopener">${esc(x.nom)}</a> <small>${esc(x[k]||'')}</small></li>`).join('');
+  return `<div class="lab">Sols pollués à moins d'1 km (Géorisques)</div><div class="note"><b>${o.conclusions_sis}</b> secteur${o.conclusions_sis>1?'s':''} d'information sur les sols · <b>${o.instructions}</b> dossier${o.instructions>1?'s':''} d'instruction · <b>${o.casias}</b> ancien${o.casias>1?'s':''} site${o.casias>1?'s':''} industriel${o.casias>1?'s':''} (CASIAS)${o.sis.length?'<ul>'+li(o.sis,'statut')+'</ul>':''}${o.inst.length?'<ul>'+li(o.inst,'statut')+'</ul>':''}<br><small>La proximité ne veut pas dire que ce site en est la cause : ces dossiers peuvent concerner des voisins, et leur exploitant n'est pas précisé. L'absence de dossier ne prouve pas l'absence de pollution.</small></div>`}
+function detail(i){
+  const g=val(i,'g','cum'),v=val(i,'v','cum'),part=v?g/v:null,s=SOC[i.siren],gr=GRP[i.gk],ann=i.se.concat(i.ce);
+  const ic=i.ic?`<div class="lab">Installation classée voisine (Géorisques, ${i.ic.km} km)</div><div class="note">${esc(i.ic.etat||'état non renseigné')} · régime : ${esc(i.ic.regime||'—')} · ${esc(i.ic.seveso||'Seveso : —')}<br>Dernière inspection publiée : <b>${i.ic.insp?esc(mois(i.ic.insp)):'aucune'}</b> (${i.ic.ninsp} rapport${i.ic.ninsp>1?'s':''} au total)</div>`:'';
+  $('#panneau').innerHTML=`<button class="btn retour" id="retour">← Retour</button><div class="det"><h2>${esc(nm(i))}</h2><div class="sous">${esc(i.s)} · ${esc(i.c)} (${esc(i.d)})</div>
+  <span class="badge" style="background:${couleur(i)}">${gr&&gr.col?esc(gr.label):'Hors des 10 premiers groupes'}</span><span class="badge" style="background:#5C6772">${esc(SECT[i.k])}</span>
+  <div class="grille"><div><b>${mt(g)}</b><span>quotas gratuits 2021-2025 (${(100*g/BIL.tot).toLocaleString('fr-FR',{maximumFractionDigits:2})} % du total)</span></div><div><b>${mt(v)}</b><span>émissions vérifiées 2021-2025</span></div>
+  <div><b>${part==null?'—':pc(part)+' %'}</b><span>des émissions couvertes gratuitement</span></div><div><b>${eur(g*PRIX[0]/1e6)} à ${eur(g*PRIX[1]/1e6)}</b><span>valeur indicative (65 à 80 €/t)</span></div></div>
+  <div class="note"><b>La société</b> : rang n° ${s.rang} sur ${BIL.SL.length}, ${(100*s.g/BIL.tot).toLocaleString('fr-FR',{maximumFractionDigits:1})} % des quotas gratuits, ${s.sites} site${s.sites>1?'s':''}.${gr&&gr.soc>1?` Le groupe regroupé par le nom (${esc(gr.label)}) : ${pc(gr.g/BIL.tot)} %.`:''}</div>
+  ${part&&part>1?'<div class="note alerte">L\'allocation gratuite dépasse les émissions vérifiées : le surplus peut être revendu ou conservé.</div>':''}
+  <div class="lab">Par année, 2013-2025</div>${graph(i)}${autres(i)}
+  <div class="lab">Argent public (société)</div><div class="note">${i.adn?`${i.adn} aide${i.adn>1?'s':''} de l'ADEME, <b>${eur(i.ad/1e6)}</b> au total (tous sites de la société, pas seulement celui-ci).`:'Aucune aide de l\'ADEME rapprochée de cette société.'}</div>
+  ${ann.length?`<div class="lab">Annonces d'emplois ou de procédures depuis 2024 (information secondaire)</div>${annHtml(ann)}`:''}${ic}${solsHtml(i)}
+  <div class="note" style="margin-top:12px">Un quota gratuit est un droit d'émettre, pas une somme versée. Voir « Méthode et limites ».</div></div>`;
+  $('#retour').onclick=()=>{S.sel=null;S.hl=null;history.replaceState(null,'',location.pathname);accueil()};
+  document.querySelectorAll('.rang li[data-id]').forEach(li=>li.onclick=()=>choisit(li.dataset.id,true));
+}
+function choisit(id,zoom){
+  const i=D.find(x=>x.id===id);if(!i)return;S.sel=id;const fr_=D.filter(x=>x.siren===i.siren).map(x=>x.id);S.hl=fr_.length>1?new Set(fr_):null;history.replaceState(null,'','#'+id);detail(i);dessine();
+  if(zoom)map.flyTo([i.la,i.lo],Math.max(map.getZoom(),9),{duration:.6});
+}
+$('#info').onclick=()=>$('#dlg').showModal();$('#ferme').onclick=()=>$('#dlg').close();
+Promise.all([fetch('data.json').then(r=>r.json()),fetch('sols.json').then(r=>r.json()).catch(()=>({}))]).then(([d,so])=>{SOLS=so;D=d.inst;AN=d.meta.annees;bilan();accueil();const h=location.hash.slice(1);if(h&&D.some(x=>x.id===h))choisit(h,true)})
+ .catch(e=>{console.error(e);$('#panneau').textContent='Les données n\'ont pas pu être chargées. Rechargez la page.'});
+</script>
+</body>
+</html>

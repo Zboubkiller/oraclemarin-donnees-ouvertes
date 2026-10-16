@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Points à vérifier · Radar des quotas</title>
+<meta name="robots" content="noindex,nofollow">
+<style>
+:root{--encre:#14202B;--gris:#5C6772;--trait:#D6DBE0;--fond:#F4F6F8}
+*{box-sizing:border-box}body{margin:0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--encre);background:var(--fond)}
+a{color:inherit;text-underline-offset:3px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 18px;background:#fff;border-bottom:1px solid var(--trait)}
+.btn{border:1px solid var(--encre);background:#fff;padding:6px 12px;border-radius:6px;font-weight:600;font-size:13.5px;text-decoration:none}.btn:hover{background:var(--encre);color:#fff}
+main{max-width:900px;margin:0 auto;padding:18px}h1{font-size:26px;line-height:1.15;margin:6px 0 8px}
+.intro{color:var(--gris);margin:0 0 16px}
+.l{background:#fff;border:1px solid var(--trait);border-radius:8px;padding:12px 14px;margin:10px 0}
+.l h2{font-size:16px;margin:0 0 4px}.l p{margin:4px 0}.l small{color:var(--gris)}
+.t{display:inline-block;font-size:11.5px;font-weight:700;border-radius:4px;padding:1px 7px;margin-right:6px;color:#fff;vertical-align:1px}
+.ok{background:#2E7D32}.chk{background:#E8710A}.non{background:#B3261E}.apx{background:#1A5FB4}
+.f{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}.f button{border:1px solid var(--trait);background:#fff;border-radius:99px;padding:4px 12px;font-size:13px;cursor:pointer}.f button[aria-pressed=true]{background:var(--encre);color:#fff}
+</style>
+</head>
+<body>
+<header><b>Carbone gratuit · Points à vérifier</b><span><a class="btn" href="radar.html">← Radar</a> <a class="btn" href="./">La carte</a></span></header>
+<main>
+<h1>Ce qui est solide, ce qui ne l'est pas</h1>
+<p class="intro">Le radar et la carte mélangent des chiffres officiels, des rapprochements automatiques et des ordres de grandeur. Voici chaque point fragile, avec ce qui reste à contrôler. Dernière mise à jour : 16 octobre 2026.</p>
+<div class="f" id="f"><button data-s="" aria-pressed="true">Tout</button><button data-s="non">Non établi</button><button data-s="chk">À vérifier</button><button data-s="apx">Ordre de grandeur</button><button data-s="ok">Contrôlé</button></div>
+<div id="liste"></div>
+<p class="intro">Une erreur à signaler ? Écrivez-moi : elle sera corrigée et datée ici.</p>
+</main>
+<script>
+const P=[
+["non","Pourquoi la base de l'ADEME montre moins que l'annonce (Heidelberg −107 M€, Vicat −141 M€)","Les montants annoncés sont confirmés (voir plus bas). La base de l'ADEME donne Lafarge 170 M€ (identique), Heidelberg 309 M€ et Vicat 190 M€. Pistes trouvées, aucune confirmée : (1) pour Vicat, le groupe parle de 340 M€ cumulant le Fonds Innovation de l'UE et l'aide GPID, et un article cite 331 M€ de subventions publiques combinées UE et État : le chiffre de 331 M€ de l'État pourrait donc recouvrir deux financements ; (2) pour Heidelberg, le projet Airvault a aussi été retenu par le Fonds Innovation de l'UE (novembre 2025) ; (3) le soutien est un paiement à la performance sur 15 ans, sur le principe du contrat pour différence : la base de l'ADEME peut n'enregistrer qu'une partie ; (4) des articles indiquent que ces aides devaient être contractualisées après février 2026.","Demander à l'ADEME et à la DGE la décomposition (État, UE) et les conventions signées."],
+["chk","Deux lauréats absents de la base de l'ADEME (Aluminium Dunkerque, Ineos Naphtachimie)","La base de l'ADEME (consultée le 16 octobre 2026, mise à jour au 15 octobre) contient cinq conventions de l'appel d'offres, toutes datées des 22 et 23 septembre 2026 : Heidelberg, Vicat, Lafarge, Eurolysine et Specialty Operations France (30,5 M€ contre 31 M€ annoncés). Aluminium Dunkerque (360 M€) et Naphtachimie (297 M€) n'y figurent ni sous leur SIREN ni sous leur nom. Explication la plus probable, non confirmée : leur convention n'était pas encore signée ou publiée à cette date. Les enquêtes de Disclose et de Marsactu (juin 2026) sur Naphtachimie ne l'expliquent pas. Le radar n'affiche que les trois cimentiers et Eurolysine, car Specialty Operations France n'est pas parmi les 100 premiers titulaires de quotas.","Interroger l'ADEME sur le calendrier de signature des deux conventions."],
+["non","Contreparties (emploi, résultats) des contrats de décarbonation","L'État dit que la sélection repose sur le coût d'abattement (euros d'aide par tonne de CO₂ évitée), pour une moyenne annoncée de 22 €/t. Les champs de la base de l'ADEME indiquent seulement « échelonné » et une période de versement. Aucune clause d'emploi n'est visible ; elle peut exister dans la convention.","Demander les conventions (droit d'accès aux documents administratifs)."],
+["non","Sort des quotas gratuits des sites qui ferment (ex. Ranville) et allocations 2026-2030","Le paquet du registre européen du 7 octobre 2026 contient les lignes 2026-2030 mais aucune valeur d'allocation. Les données montrent que l'allocation tombe à zéro après un arrêt déclaré (Cruas, Yara Montoir, Grandpuits), mais pas pour Gargenville (voir plus haut) : la règle n'est donc pas appliquée de façon uniforme dans les données.","Attendre la publication par installation ; consulter la décision (UE) 2026/1312."],
+["ok","Dates Heidelberg : annonce de la fermeture et convention","Annonce du projet de fermeture de Ranville : 16 septembre 2026 (presse locale du 16 et 17 septembre). Convention de l'ADEME : 22 septembre 2026 (base ouverte). Pas de conflit : ce sont deux événements, séparés de six jours. Reste une erreur d'affichage dans notre base de plans sociaux, où la ligne de Ranville est datée du 22 septembre (date d'un article de BFM sur la grève) au lieu du 16.","Corriger la date de la fiche de plans sociaux."],
+["ok","« Lobbying déclaré » : classement par mots-clés","Les 22 déclarations affichées pour les 100 premières sociétés ont été relues à la main. Deux faux positifs (ArcelorMittal : interdiction des importations de brames russes, autorisation REACH, classées à tort comme « aides publiques » à cause de « soutien de la France ») ont été supprimés en resserrant la règle ; les autres correspondent à leur étiquette. Le classement reste automatique pour les futures mises à jour.","Relire à chaque mise à jour du registre HATVP."],
+["chk","« Aucune déclaration retrouvée » ne veut pas dire « aucun lobbying »","Le rapprochement se fait par SIREN. Un groupe ou une fédération (cimentiers, sidérurgie, chimie) peut déclarer à sa place, ou sous un autre SIREN.","Croiser avec les fédérations professionnelles et les maisons mères."],
+["chk","Aides de l'ADEME : périmètre","Les aides sont rapprochées par SIREN du bénéficiaire, tous établissements et toutes années du jeu de données. Elles peuvent inclure des aides sans rapport avec le carbone (études, recherche). Les aides d'un autre SIREN du même groupe ne sont pas comptées.","Lire les 3 plus grosses aides de chaque ligne ; regrouper par maison mère."],
+["chk","Résultat net : seulement pour une partie des sociétés","Il n'est affiché que pour les sociétés qui figurent aussi dans notre base de plans sociaux (comptes recherchés pour elles seules) : 9 des 25 premières sociétés ont un résultat, 16 n'en ont pas (Lafarge, Vicat, Eqiom, Naphtachimie, Aluminium Dunkerque, etc.). « — » veut dire « non collecté », pas « pas de résultat ». Pour les autres, il s'agit du résultat de la société française, pas du groupe, pour le dernier exercice déposé.","Collecter les comptes de toutes les sociétés du radar."],
+["chk","Regroupement des sociétés par groupe","Les 10 premiers groupes sont regroupés par le nom des sociétés. L'identifiant international GLEIF ne trouve une maison mère que pour 14 des 100 premières sociétés : il complète sans remplacer. Un regroupement par nom peut se tromper.","Vérifier chaque groupe sur les registres de société."],
+["chk","Données de la carte : version du registre des quotas","La carte utilise le paquet du registre européen du 21 juillet 2026. Un paquet plus récent (7 octobre 2026) existe, avec des chiffres 2025 plus complets, mais n'est pas encore branché.","Mettre à jour les années 2021-2025."],
+["chk","Surplus très élevés sur de petits sites : plusieurs sites à l'arrêt","Vérification dans le registre : plusieurs sites à très forte couverture ont des émissions vérifiées nulles ou quasi nulles : Cruas (Heidelberg, arrêté fin 2021, allocation tombée à 0 dès 2022), Grandpuits (TotalEnergies, raffinerie arrêtée), Yara Montoir (allocation 0 dès 2024), Eurolysine (émissions nulles en 2024-2025 mais quotas encore attribués). Les autres cas (papeteries, panneaux, cellulose) émettent normalement : leur surplus vient du mode de calcul de l'allocation, pas d'un arrêt.","Lire chaque cas avec ses émissions par année avant citation."],
+["non","Gargenville (Heidelberg) : quotas gratuits après l'arrêt des émissions","Le registre indique pour l'usine de Gargenville des émissions vérifiées nulles en 2022 et 2023, non déclarées en 2024 et 2025, mais 126 368 quotas gratuits attribués chaque année de 2022 à 2025, soit environ 505 000 quotas (33 à 40 M€ de valeur indicative). L'autorisation n'est pas révoquée. Cause inconnue : arrêt temporaire, déclaration en retard, ou allocation non ajustée. À l'inverse, pour Cruas (arrêté), l'allocation est bien tombée à zéro.","Interroger le groupe et la DGEC sur le statut de l'usine et l'allocation 2022-2025."],
+["ok","Rapprochement d'une société et d'un site (SIREN)","Les noms du registre des quotas et du répertoire Sirene ont été comparés pour les 100 sociétés : tous concordent, à la graphie près (tirets, « SAS »). Pour deux sociétés (Compagnie Pétrochimique de Berre, Air Liquide Hydrogène) le SIREN est absent de notre copie de Sirene : le nom du registre est affiché. Un titulaire mal renseigné ou une filiale reste possible pour les petites sociétés hors du top 100, non contrôlées.","Contrôler les sociétés hors du top 100."],
+["apx","Valeur indicative des quotas (65 à 80 € la tonne)","Ordre de grandeur : le cours a varié selon les années (environ 65 € en 2024 d'après l'Agence européenne de l'environnement, au-dessus de 80 € en 2022-2023). Un quota gratuit est un droit d'émettre, pas une somme versée.","À présenter toujours comme indicatif."],
+["apx","Plafonds de contrat de décarbonation","Les 669 M€ des trois cimentiers (base de l'ADEME) sont des plafonds de convention : le soutien est un paiement à la performance sur 15 ans, versé par échelons (à partir de 2030 à 2034 selon les cas), pas de l'aide déjà reçue.","Ne jamais additionner avec les aides déjà versées."],
+["apx","Sols pollués à moins d'1 km (Géorisques)","La proximité d'un secteur ou d'un dossier ne veut pas dire que le site en soit la cause. L'API n'indique pas l'exploitant. L'absence de dossier ne prouve pas l'absence de pollution.","À lire comme un contexte, pas comme une responsabilité."],
+["ok","Quotas gratuits et émissions vérifiées 2021-2025","Chiffres du registre européen (EU Transaction Log), par installation, agrégés par société. Contrôlés sur Heidelberg (12,2 Mt gratuits pour 12,8 Mt d'émissions) et sur la concentration du classement.","—"],
+["ok","Montants annoncés des sept lauréats de l'appel d'offres de décarbonation","Source officielle : Direction générale des Entreprises, 12 février 2026. Aluminium Dunkerque 360 M€, Heidelberg 416 M€, Vicat 331 M€, Ineos Naphtachimie 297 M€, Holcim 170 M€, Speciality Operations France 31 M€, Eurolysine 21 M€, soit 1,6 Md€ sur 15 ans. Critère de sélection : coût par tonne de CO₂ évitée (moyenne annoncée : 22 €/t).","—"],
+["ok","Existence des conventions de décarbonation de Lafarge, Heidelberg et Vicat","Lues directement dans le jeu de données de l'ADEME (dispositif « Grands Projets Industriels de Décarbonation 2024 ») : montants, dates et périodes de versement sont reproduits tels quels.","—"]
+];
+const T={ok:"Contrôlé",chk:"À vérifier",non:"Non établi",apx:"Ordre de grandeur"};
+const e=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let S="";
+function r(){document.querySelector('#liste').innerHTML=P.filter(p=>!S||p[0]===S).map(p=>`<div class="l"><h2><span class="t ${p[0]}">${T[p[0]]}</span>${e(p[1])}</h2><p>${e(p[2])}</p>${p[3]!=='—'?`<p><small><b>À faire :</b> ${e(p[3])}</small></p>`:''}</div>`).join('')}
+document.querySelector('#f').onclick=ev=>{if(ev.target.dataset.s===undefined)return;S=ev.target.dataset.s;document.querySelectorAll('#f button').forEach(b=>b.setAttribute('aria-pressed',b===ev.target));r()};
+r();
+</script>
+</body>
+</html>

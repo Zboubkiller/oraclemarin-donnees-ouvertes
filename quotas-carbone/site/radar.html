@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Radar : qui défend ses quotas de CO₂, qui est soutenu par l'argent public ?</title>
+<meta name="robots" content="noindex,nofollow">
+<style>
+:root{--encre:#14202B;--gris:#5C6772;--trait:#D6DBE0;--fond:#F4F6F8;--rouge:#B3261E;--orange:#E8710A;--bleu:#1A5FB4}
+*{box-sizing:border-box}body{margin:0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--encre);background:var(--fond)}
+a{color:inherit;text-underline-offset:3px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 18px;background:#fff;border-bottom:1px solid var(--trait)}
+header b{font-size:18px}.btn{border:1px solid var(--encre);background:#fff;padding:6px 12px;border-radius:6px;font-weight:600;font-size:13.5px;text-decoration:none;cursor:pointer}.btn:hover{background:var(--encre);color:#fff}
+.bandeau{background:#FFF4D6;border-bottom:1px solid #E0B94F;padding:5px 18px;font-size:12.5px}
+main{max-width:1240px;margin:0 auto;padding:18px}
+h1{font-size:26px;line-height:1.15;margin:6px 0 8px}
+.cle{background:var(--encre);color:#fff;padding:14px 18px;border-radius:8px;font-size:16px;line-height:1.45}.cle b{color:#FFD27A}.cle small{display:block;color:#B9C3CD;font-size:12.5px;margin-top:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 8px}.chip{border:1px solid var(--trait);background:#fff;border-radius:99px;padding:4px 12px;font-size:13px;cursor:pointer}.chip[aria-pressed=true]{background:var(--encre);color:#fff;border-color:var(--encre)}
+.tab{overflow-x:auto;background:#fff;border:1px solid var(--trait);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:9px 10px;border-bottom:1px solid #EEF0F2;text-align:left;vertical-align:top}
+th{background:#F2F3F5;font-size:12px;text-transform:uppercase;letter-spacing:.03em;color:var(--gris);position:sticky;top:0;cursor:pointer;white-space:nowrap}th:hover{color:var(--encre)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}tr.l{cursor:pointer}tr.l:hover td{background:#FAFBFC}
+td small{display:block;color:var(--gris);font-size:12px}.tag{display:inline-block;font-size:11.5px;font-weight:700;border-radius:4px;padding:1px 6px;margin:1px 3px 1px 0;color:#fff}
+tr.det td{background:#FAFBFC;font-size:13.5px}tr.det .col{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}tr.det h4{margin:0 0 4px;font-size:12px;text-transform:uppercase;color:var(--gris);letter-spacing:.04em}
+tr.det blockquote{margin:3px 0;padding:4px 9px;border-left:3px solid var(--orange);background:#fff;font-size:13px}
+.note{font-size:13px;color:var(--gris);margin:10px 0}
+h2{font-size:18px;margin:26px 0 6px}li{margin:3px 0}
+</style>
+</head>
+<body>
+<header><b>Carbone gratuit · Radar</b><span><a class="btn" href="./">← La carte</a> <a class="btn" href="radar_full.csv">CSV (toutes les sociétés)</a> <a class="btn" href="verif.html">Points à vérifier</a></span></header>
+<div class="bandeau"><b>Version de travail.</b> Chiffres à vérifier avant toute citation : voir la méthode et les limites en bas de page, et la <a href="verif.html">liste des points à vérifier</a>.</div>
+<main>
+<h1>Qui défend ses quotas, qui est soutenu par l'argent public ?</h1>
+<div class="cle" id="cle">Chargement…</div>
+<div class="chips" id="chips"></div>
+<div style="display:flex;gap:8px;align-items:center;margin:0 0 8px"><input id="q" type="search" placeholder="Chercher une société" style="flex:1;max-width:320px;padding:7px 10px;border:1px solid var(--trait);border-radius:6px;font:inherit"><span id="cpt" class="note" style="margin:0"></span></div>
+<div class="tab"><table id="t"><thead><tr><th data-k="rang">Rang</th><th data-k="nom">Société</th><th class="n" data-k="g">Quotas gratuits 2021-2025</th><th class="n" data-k="ademe">Aides ADEME</th><th class="n" data-k="gpm">Contrat de soutien décarbonation</th><th class="n" data-k="net">Résultat net</th><th data-k="lobn">Lobbying déclaré (HATVP)</th></tr></thead><tbody></tbody></table></div>
+<p class="note">Cliquez sur une ligne pour le détail : textes déclarés au registre du lobbying, plus grosses aides, conditions du contrat de soutien.</p>
+<h2>Comment lire ce tableau</h2>
+<ul>
+<li><b>Quotas gratuits</b> : droit d'émettre du CO₂ sans l'acheter (registre européen, 2021-2025). La valeur indicative multiplie les quotas par 65 à 80 € la tonne : c'est un ordre de grandeur, pas une somme reçue.</li>
+<li><b>Aides ADEME</b> : total des aides financières de l'ADEME au bénéficiaire (tous établissements, toutes années du jeu de données, hors contrats de l'appel d'offres de décarbonation).</li>
+<li><b>Contrat de soutien</b> : contrats pluriannuels de l'appel d'offres « Grands projets industriels de décarbonation ». Ce sont des plafonds versés par échelons sur plusieurs années, pas des aides déjà reçues. Le jeu de données de l'ADEME indique seulement « échelonné » et les dates de versement.</li>
+<li><b>Résultat net</b> : affiché seulement pour les sociétés dont nous avons collecté les comptes ; « — » veut dire « non collecté ».</li>
+<li><b>Lobbying</b> : déclarations d'activités de lobbying au registre de la Haute Autorité pour la transparence de la vie publique (HATVP). Sont repérés les objets qui évoquent le marché du carbone (quotas, ajustement carbone aux frontières, benchmarks) ou des aides publiques.</li>
+</ul>
+<h2>Limites</h2>
+<ul>
+<li>« Aucune déclaration retrouvée » ne veut pas dire « aucun lobbying » : une société peut lobbyer par son groupe, par une fédération professionnelle (cimentiers, sidérurgie, chimie) ou sous un autre numéro SIREN.</li>
+<li>Les sociétés sont rapprochées par le SIREN du titulaire du compte de quotas ; les filiales d'un même groupe restent séparées.</li>
+<li>Les montants de l'ADEME peuvent comprendre des aides sans rapport avec le carbone (recherche, études). Voir le détail de chaque ligne.</li>
+<li>Ce rapprochement ne prouve aucun lien de cause : il met côte à côte des faits publics.</li>
+</ul>
+<p class="note">Sources : registre de l'Union européenne des quotas (EU Transaction Log, paquet Zenodo du 21/07/2026, CC-BY 4.0) ; données ouvertes de l'ADEME ; registre HATVP ; comptes déposés. Édité par Quentin Closset, Perros-Guirec.</p>
+</main>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const mt=x=>x>=1e6?(x/1e6).toLocaleString('fr-FR',{maximumFractionDigits:2})+' Mt':Math.round(x/1e3).toLocaleString('fr-FR')+' kt';
+const me=x=>x>=1e9?(x/1e9).toLocaleString('fr-FR',{maximumFractionDigits:1})+' Md€':x>=1e6?(x/1e6).toLocaleString('fr-FR',{maximumFractionDigits:1})+' M€':Math.round(x/1e3).toLocaleString('fr-FR')+' k€';
+const an=d=>d?d.slice(0,4):'';
+let R=[],Q='',ALL=false,F=new Set(),sort={k:'rang',d:1},open=new Set();
+const gpm=r=>r.gpid.reduce((a,c)=>a+(c.m||0),0);
+const view=()=>{let L=R.slice();if(Q)L=L.filter(r=>r.nom.toLowerCase().includes(Q));if(F.has('ets'))L=L.filter(r=>r.lob_ets.length);if(F.has('aide'))L=L.filter(r=>r.lob_aide.length);if(F.has('gpid'))L=L.filter(r=>r.gpid.length);if(F.has('ps'))L=L.filter(r=>r.ps_n);if(F.has('ademe'))L=L.filter(r=>r.ademe>=1e7);
+  const k=sort.k,val=r=>k==='gpm'?gpm(r):k==='lobn'?r.lob_ets.length*10+r.lob_aide.length:r[k]==null?-1:r[k];
+  return L.sort((a,b)=>{const x=val(a),y=val(b);return (typeof x==='string'?x.localeCompare(y,'fr'):x-y)*sort.d})};
+function rend(){
+  const L0=view(),L=(ALL||Q)?L0:L0.slice(0,100);$('#cpt').textContent=L.length+' sur '+L0.length+' sociétés';
+  $('#t tbody').innerHTML=L.map(r=>{
+    const g=gpm(r),ps=r.ps_n?'<br><span class="tag" style="background:#455A64">'+r.ps_n+' annonce'+(r.ps_n>1?'s':'')+' d’emplois</span>':'',tags=(r.lob_ets.length?'<span class="tag" style="background:#B3261E">Marché du carbone</span>':'')+(r.lob_aide.length?'<span class="tag" style="background:#E8710A">Aides</span>':'');
+    const lob=r.lob?`${tags||'<span style="color:#5C6772">déclaré, sans objet carbone ni aides</span>'}<small>dernière année : ${esc(r.lob_an||'—')} · ${esc(r.lob_dep||'')}</small>`:'<span style="color:#5C6772">aucune déclaration retrouvée</span>';
+    let h=`<tr class="l" data-s="${r.siren}"><td>${r.rang}</td><td><b>${esc(r.nom)}</b><small>${r.sites} site${r.sites>1?'s':''}</small>${ps}</td><td class="n"><b>${mt(r.g)}</b><small>${r.bas.toLocaleString('fr-FR')} à ${r.haut.toLocaleString('fr-FR')} M€</small></td>
+    <td class="n">${r.ademe?`<b>${me(r.ademe)}</b><small>${r.ademe_n} aide${r.ademe_n>1?'s':''}</small>`:'—'}</td><td class="n">${g?`<b>${me(g)}</b><small>versements ${r.gpid.map(c=>esc(c.p.replace(/_/g,' à ').replace(/-\d\d-\d\d/g,''))).join('; ')}</small>`:'—'}</td>
+    <td class="n">${r.net!=null?me(r.net):'—'}<small>${r.an?'exercice '+esc(r.an):''}</small></td><td>${lob}</td></tr>`;
+    if(open.has(r.siren)){
+      h+=`<tr class="det"><td></td><td colspan="6"><div class="col"><div><h4>Lobbying : marché du carbone</h4>${r.lob_ets.map(x=>`<blockquote>${esc(x.t)} <small>(déclaration ${esc(x.a)})</small></blockquote>`).join('')||'<small>Aucun objet retrouvé.</small>'}<h4 style="margin-top:8px">Lobbying : aides publiques</h4>${r.lob_aide.map(x=>`<blockquote>${esc(x.t)} <small>(déclaration ${esc(x.a)})</small></blockquote>`).join('')||'<small>Aucun objet retrouvé.</small>'}</div>
+      <div><h4>Plus grosses aides ADEME</h4>${r.top.map(x=>`<div>${me(x.m)} · ${esc(an(x.d))} · ${esc(x.o)}</div>`).join('')||'<small>Aucune.</small>'}<small>Total depuis 2021 : ${me(r.ademe21||0)}</small></div>
+      <div><h4>Annonces d'emplois ou de fermetures (depuis 2024, presse et liste CGT)</h4>${(r.ps||[]).map(x=>`<div>${esc(x.d||'date inconnue')} · ${esc(x.c||'lieu inconnu')} · ${esc(x.t||'')}${x.n?' · '+x.n+' emplois':''}<br><small>${esc(x.s||'')}</small></div>`).join('')||'<small>Aucune dans notre base.</small>'}<h4 style="margin-top:8px">Contrat de soutien décarbonation</h4>${r.gpid.map(c=>`<div><b>${me(c.m)}</b> · convention du ${esc(c.d)}<br>${esc(c.o)}<br><small>Conditions de versement indiquées : ${esc(c.c||'—')} ; période : ${esc(c.p||'—')}</small></div>`).join('')||'<small>Aucun.</small>'}</div></div></td></tr>`}
+    return h}).join('')||'<tr><td colspan="7">Aucune société ne correspond.</td></tr>';
+  if(!ALL&&!Q&&L0.length>100)$('#t tbody').insertAdjacentHTML('beforeend','<tr><td colspan="7" style="text-align:center"><button class="btn" id="tout">Afficher les '+L0.length+' sociétés</button></td></tr>');const bt=$('#tout');if(bt)bt.onclick=()=>{ALL=true;rend()};
+  document.querySelectorAll('tr.l').forEach(tr=>tr.onclick=()=>{open.has(tr.dataset.s)?open.delete(tr.dataset.s):open.add(tr.dataset.s);rend()});
+}
+fetch('radar_full.json?v=20261016b').then(r=>r.json()).then(d=>{R=d.lignes;const m=d.meta.resume,c=R.filter(r=>r.gpid.length&&/cim|lafarge|vicat|heidelberg|eqiom/i.test(r.nom)),cg=c.reduce((a,r)=>a+gpm(r),0);
+  $('#cle').innerHTML=`Parmi les <b>40 premiers titulaires</b> de quotas de CO₂ gratuits en France : <b>${m.n40_ademe}</b> ont reçu des aides de l'ADEME, <b>${m.n40_gpid}</b> ont un contrat de soutien à la décarbonation (${c.map(r=>esc(r.nom.split(' ')[0])).join(', ')} : <b>${me(cg)}</b> à eux trois, versés par échelons à partir de 2030) et <b>${m.n40_lob_ets}</b> ont déclaré du lobbying sur les règles du marché du carbone.<small>« Aucune déclaration retrouvée » ne veut pas dire « aucun lobbying ». Aucun lien de cause n'est établi entre quotas, aides et lobbying : le radar met côte à côte des faits publics.</small>`;
+  $('#chips').innerHTML=[['ets','Lobbying sur le marché du carbone'],['aide','Lobbying sur les aides publiques'],['gpid','Contrat de soutien décarbonation'],['ademe','Aides ADEME de plus de 10 M€'],['ps','Annonces d’emplois ou de fermetures']].map(([k,t])=>`<button class="chip" data-f="${k}" aria-pressed="false">${t}</button>`).join('');
+  $('#chips').onclick=e=>{const k=e.target.dataset.f;if(!k)return;F.has(k)?F.delete(k):F.add(k);e.target.setAttribute('aria-pressed',F.has(k));rend()};
+  document.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k;sort={k,d:sort.k===k?-sort.d:(k==='nom'||k==='rang'?1:-1)};rend()});
+  $('#q').oninput=e=>{Q=e.target.value.trim().toLowerCase();rend()};rend()}).catch(()=>{$('#cle').textContent='Les données n\'ont pas pu être chargées.'});
+</script>
+</body>
+</html>
