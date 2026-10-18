@@ -313,7 +313,7 @@ def nav_html(actif=""):
 PIED = (f'<footer>Projet indépendant, édité par <strong>{EDITEUR}</strong>, développeur à Perros-Guirec · '
         f'<a href="https://oraclemarin.fr/apropos/">À propos</a> · <a href="{BASE}/presse/">Presse</a> · <a href="mailto:{CONTACT}">Signaler une erreur</a> · <a href="https://buymeacoffee.com/capoupascap" rel="noopener" target="_blank">Soutenir</a> · '
         f'<a href="https://oraclemarin.fr/rgpd/#plans-sociaux">Mentions légales et données personnelles</a> · <a href="{BASE}/methode/">Méthode et corrections</a> · '
-        f'<a href="{BASE}/en-un-an/">Infographie</a> · <a href="{BASE}/liste/">Plans sociaux {dt.date.today().year}</a> · <a href="{BASE}/alertes/">Alertes</a> · '
+        f'<a href="{BASE}/en-un-an/">Infographie</a> · <a href="{BASE}/recoupements/">Recoupements</a> · <a href="{BASE}/liste/">Plans sociaux {dt.date.today().year}</a> · <a href="{BASE}/alertes/">Alertes</a> · '
         f'<a href="{BASE}/donnees/">Données</a> · <a href="{BASE}/rss.xml">Flux RSS</a> · <a href="{BASE}/llms.txt">llms.txt</a> · '
         f'<a href="https://oraclemarin.fr/cabrule/">ça brûle, la carte des mobilisations</a></footer>')
 

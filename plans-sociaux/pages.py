@@ -382,6 +382,7 @@ def p_methode():
            ("DECP", "Marchés publics : data.economie.gouv.fr jusqu'en février 2024, puis DECP consolidé de data.gouv.fr", "Quotidien", "Déclaratif : erreurs de saisie possibles."),
            ("ADEME", "Aides financières, datées, par SIRET", "Hebdomadaire", "Officiel."),
            ("France Relance", "Lauréats des projets industriels (sans montant par entreprise)", "Hebdomadaire", "Officiel."),
+           ("Registre européen des aides d’État (TAM)", "Aides individuelles de plus de 100 000 € déclarées à la Commission européenne depuis 2016, rapprochées par SIREN ou SIRET ; les aides de l’ADEME sont écartées pour ne pas les compter deux fois", "Mensuel", "Officiel, déclaré par les autorités qui octroient l’aide. Les aides fiscales sont publiées par tranche de montant : on affiche le bas et le haut de la fourchette."),
            ("Registre des aides de minimis", "Aides octroyées depuis 2026", "Hebdomadaire", "Officiel, couverture récente."),
            ("Dares", "Inscriptions à France Travail après un licenciement économique, PSE engagés et validés", "Hebdomadaire (publication trimestrielle)", "Officiel."),
            ("BODACC, ventes et cessions", "Achats et ventes de fonds de commerce ou de branches d’activité, apports et fusions de chaque entreprise suivie, avec la contrepartie et le montant quand l’annonce l’indique. Les cessions d’actions (rachat d’une société par un fonds) ne sont pas publiées au BODACC", "Mensuel", "Officiel. Montant extrait automatiquement du texte : à vérifier sur l’annonce."),
@@ -425,7 +426,7 @@ def p_methode():
              "<li><b>Effectifs</b> : tranches INSEE (par exemple 50 à 99 salariés), parfois anciennes ; ce sont des ordres de grandeur.</li>"
              "<li><b>Comptes</b> : un seul exercice disponible par entreprise ; il n'est utilisé que s'il est antérieur ou égal à l'année de l'annonce.</li>"
              "<li><b>Presse</b> : l'entreprise, la commune et l'effectif sont extraits automatiquement du titre et du chapô ; l'article d'origine fait foi.</li>"
-             "<li><b>Non couvert</b> : crédit d'impôt recherche, exonérations de cotisations, aides de Bpifrance et de France 2030, aides d'État notifiées à la Commission européenne (base TAM), "
+             "<li><b>Non couvert</b> : crédit d'impôt recherche, exonérations de cotisations, aides de Bpifrance et de France 2030, aides d'État de moins de 100 000 €, "
              "dividendes, installations classées (Géorisques n'est pas joignable depuis le serveur du site).</li></ul>"
              + rapprochements_html() +
              "<h2>Journal des corrections</h2><p>Les erreurs signalées ou trouvées sont corrigées et listées ici, avec leur date. Pour en signaler une : "
@@ -677,10 +678,11 @@ if __name__ == "__main__":
         import pages_carte_dep; urls_a.append(pages_carte_dep.p_carte(EV, FICHES))
     except Exception as ex:
         print("carte par département (page) :", ex)
+    # page « quotas-co2 » retirée le 18/10/2026 : remplacée par https://oraclemarin.fr/quotas-carbone/ (redirection 301 dans nginx)
     try:
-        import pages_quotas; pages_quotas.p_quotas(EV, FICHES)       # page de travail : noindex, hors sitemap et hors menu
+        import pages_recoupements; urls_a.append(pages_recoupements.p_recoupements(EV, FICHES))     # page publique : dans le sitemap
     except Exception as ex:
-        print("quotas CO2 (page) :", ex)
+        print("recoupements (page) :", ex)
     try:
         import pages_liens; urls_a.append(pages_liens.p_liens(EV, FICHES))
     except Exception as ex:

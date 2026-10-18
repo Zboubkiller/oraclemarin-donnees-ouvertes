@@ -6,7 +6,7 @@ from email.utils import format_datetime
 import commun as S
 from commun import esc, fr, eu, mois_court, date_long
 
-import re
+import json, os, re
 PERSO = re.compile(r"(?i)faillite personnelle|interdiction de g[ée]rer|interdiction d.exercer")
 LIEN = {"siren_source": "sûr", "siret_commune": "sûr", "nom+dep": "probable"}
 CSS = """.fc .det ul{margin:4px 0 0;padding-left:16px}.fc .det li{margin:3px 0}.fiche-grille{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin:14px 0}
@@ -205,6 +205,15 @@ def fiche(siren, evs):
         m = ap["marches"]; ai.append(("Marchés publics", eu(m["total"]), f"{m['n']} marché{'s' if m['n'] > 1 else ''} publics ({esc(m.get('de') or '')}–{esc(m.get('a') or '')}), hors accords-cadres"))
     if ap and (ap.get("ademe") or {}).get("total"):
         m = ap["ademe"]; ai.append(("Aides ADEME", eu(m["total"]), f"{m.get('n', '')} aide(s)"))
+    t = (ap or {}).get("tam")
+    if t and t.get("n"):
+        j = (t.get("lignes") or [{}])[0]
+        ai.append(("Aides d’État (registre européen)", eu(t["total_min"]) + (f" à {eu(t['total_max'])}" if t["total_max"] > t["total_min"] else ""),
+                   f"{t['n']} aide(s) de plus de 100 000 € déclarée(s) à la Commission européenne depuis 2016"
+                   + (f", dont {t['tranches']} publiée(s) par tranche de montant (aides fiscales)" if t.get("tranches") else "")
+                   + (f" ; la plus récente : {esc((j.get('objectif') or j.get('mesure') or '')[:100])} ({esc((j.get('date') or '')[:7])}, {esc((j.get('autorite') or '')[:60])})" if j.get("date") else "")
+                   + (". Aides de l’ADEME exclues (comptées plus haut)" if t.get("ademe_exclues") else "")
+                   + f" · <a href=\"{esc(t['url'])}\" rel=\"noopener\">registre TAM</a>"))
     dr = next((e["direction"] for e in evs if e.get("direction")), None)
     ho = [p for p in (dr or {}).get("dirigeants_pm") or [] if p.get("holding")]
     if ho:    # seuls les dirigeants holdings ou fonds sont montrés : les changements d'administration du BODACC sont trop fréquents (sans noms) pour être informatifs
@@ -223,6 +232,29 @@ def fiche(siren, evs):
         g = pr.get("plus_grosse") or {}
         ai.append(("Aide avant l'annonce", eu(pr["montant"]), f"{pr['n']} aide(s) dans les {pr['fenetre_mois']} mois précédant l'annonce"
                        + (f". La plus importante : « {esc((g.get('libelle') or '')[:120])} » ({eu(g['montant'])}, {esc((g.get('date') or '')[:10])}{', le même mois que l’annonce' if g.get('delai_mois') == 0 else ''}). L’aide peut concerner un autre site de la même société que celui de l’annonce." if g.get("montant") else "")))
+    try: AL = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "aides_locales.json"), encoding="utf-8")).get(siren) or []
+    except Exception: AL = []
+    for x in AL:    # aides des collectivités saisies à la main, avec leurs sources (aucun jeu de données ouvert ne les recense)
+        liens = " · ".join('<a href="%s" rel="noopener">%s</a>' % (esc(u["url"]), esc(u["libelle"])) for u in x.get("sources") or [])
+        ai.append(("Collectivité : " + x["financeur"], eu(x["montant"]),
+                   esc(x["nature"]) + (" (%s)" % esc(x["date"]) if x.get("date") else "") + ". " + esc(x.get("precision") or "") + (" · " + liens if liens else "")))
+    try: SUB = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "subventions_locales_auto.json"), encoding="utf-8")).get("par_siren", {}).get(siren) or []
+    except Exception: SUB = []
+    if SUB:    # subventions des collectivités publiées en données ouvertes (conventions de subvention, aides régionales)
+        tot = sum(l["montant"] for l in SUB)
+        dref = max((e.get("date") or "" for e in evs if e.get("type") in ("plan social", "fermeture", "liquidation", "redressement", "départs volontaires")), default="")[:10]
+        try:
+            lim = (dt.date.fromisoformat(dref) - dt.timedelta(days=730)).isoformat() if dref else ""
+            avant = [l for l in SUB if l["date"] and lim and lim <= l["date"] <= dref]
+        except Exception: avant = []
+        top = sorted(SUB, key=lambda l: -l["montant"])[:3]
+        fin = sorted({l["financeur"] for l in SUB if l["financeur"]})
+        det = ("%d subvention%s de %s : %s. " % (len(SUB), "s" if len(SUB) > 1 else "", "collectivités", esc(", ".join(fin)[:140]))
+               + ("<b>%d dans les 24 mois avant l’annonce</b> (%s). " % (len(avant), eu(sum(l["montant"] for l in avant))) if avant else "")
+               + "Les plus importantes : " + " ; ".join("%s, %s (%s)%s" % (eu(l["montant"]), esc(l["financeur"]), esc(l["date"][:7] or "date non publiée"), (" : « " + esc(l["objet"][:110]) + " »") if l["objet"] else "") for l in top)
+               + ". Montants attribués d’après les jeux ouverts de ces collectivités, pas forcément versés ; seules celles qui publient leurs conventions figurent ici. Sources : "
+               + " · ".join('<a href="%s" rel="noopener">%s</a>' % (esc(u), esc(n[:50])) for u, n in sorted({(l["url"], l["financeur"]) for l in SUB})[:4]))
+        ai.append(("Subventions des collectivités (données ouvertes)", eu(tot), det))
     lb = next((e["lobbying"] for e in evs if e.get("lobbying")), None)
     if ai:
         tete = next((v for t, v, d in ai if t.startswith("Aide avant")), None) or next((v for t, v, d in ai if t.startswith("Aides ADEME")), None) or ai[0][1]
