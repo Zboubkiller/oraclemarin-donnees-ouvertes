@@ -322,6 +322,13 @@ def enrichir(evs):
             if av and an_evt:
                 ar["avant_annonce"] = {"annee": an_evt, "total": sum(v or 0 for v in av.values()), **av}
             e["argent_public"] = ar
+        try:
+            import tam; t = tam.lire(e["siren"])
+        except Exception: t = None
+        if t and t.get("n"):
+            t = dict(t); t["lignes"] = t.get("lignes", [])[:8]
+            if an_evt: t["avant_annonce_min"] = sum(v for y, v in t.get("par_annee", {}).items() if int(y) < an_evt)
+            e.setdefault("argent_public", {})["tam"] = t
         idt = identite(e["siren"])
         if idt:
             e.setdefault("naf", idt.get("naf")); e["categorie"] = idt.get("categorie")

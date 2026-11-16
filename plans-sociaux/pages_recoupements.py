@@ -24,7 +24,7 @@ def retenus(EV):
 
 def lien(nom, sir, FICHES):
     f = FICHES.get(sir)
-    return f'<a href="{S.BASE}/entreprise/{esc(f)}/">{esc(nom)}</a>' if f else esc(nom)
+    return f'<a href="{esc(f) if f.startswith("/") else S.BASE + "/entreprise/" + esc(f) + "/"}">{esc(nom)}</a>' if f else esc(nom)
 
 def holdings(EV, FICHES):
     H_ = {}
@@ -157,5 +157,6 @@ def p_recoupements(EV, FICHES):
     S.ecrire("recoupements/index.html", S.page("Recoupements : holdings, aides et lobbying autour des plans sociaux",
              "Holdings à la tête de plusieurs sociétés touchées, aides publiques avant suppressions d'emplois, lobbying déclaré : rapprochements de la base Plans sociaux et faillites.",
              "recoupements/", corps, None, "", robots="index,follow"))
+    json.dump({"subventions_emploi": len(SE), "holdings": len(HO), "aidees_licenciantes": len(AI), "lobbyistes": len(LO)}, open(os.path.join(H, "recoupements_counts.json"), "w"))
     print(f"recoupements : {len(SE)} subventions emploi, {len(HO)} holdings, {len(AI)} aidées puis licenciantes, {len(LO)} lobbyistes avec suppressions")
     return S.BASE_URL + "/recoupements/"

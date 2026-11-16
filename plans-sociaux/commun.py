@@ -9,7 +9,7 @@ BASE_URL = "https://oraclemarin.fr/plans-sociaux"
 BASE = "/plans-sociaux"
 NOM = "Plans sociaux et faillites en France"
 EDITEUR = "Quentin Closset"
-CONTACT = "quentinclosset@gmail.com"
+CONTACT = "ADRESSE_DE_CONTACT"
 RUPTURES = {"57", "67", "68"}        # Alsace-Moselle : rupture de série BODACC fin 2025 (voir la page méthode)
 
 DEPS = {"01": "Ain", "02": "Aisne", "03": "Allier", "04": "Alpes-de-Haute-Provence", "05": "Hautes-Alpes", "06": "Alpes-Maritimes",
@@ -41,6 +41,21 @@ def eu(n):
     s, v = ("−" if n < 0 else ""), abs(n)
     return s + (f"{v/1e9:.1f} Md€".replace(".", ",") if v >= 1e9 else f"{v/1e6:.1f} M€".replace(".", ",") if v >= 1e6 else fr(v) + " €")
 def mois_long(m): return f"{MOIS[int(m[5:7]) - 1]} {m[:4]}"
+_MOIS_BD = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"]
+
+def bodacc_depuis():
+    """« décembre 2024 » : début de la couverture BODACC (50 salariés et plus), lu dans le rattrapage hebdomadaire (cache.db, table bk_done) ; jamais avant janvier 2023."""
+    import sqlite3, os, datetime as _dt
+    try:
+        db = sqlite3.connect(os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache.db"), timeout=30)
+        d = db.execute("select min(sem) from bk_done").fetchone()[0]
+        d = max(d or "2025-03-17", "2023-01-02")
+    except Exception:
+        d = "2025-03-17"
+    # une semaine entamée compte pour son mois : on prend le mois du lundi suivant, pour ne pas annoncer un mois incomplet
+    dd = _dt.date.fromisoformat(d) + _dt.timedelta(days=7)
+    return "%s %d" % (_MOIS_BD[dd.month - 1], dd.year)
+
 def de_mois(m):
     """« de mars 2026 », mais « d'août 2025 » : élision devant voyelle."""
     s = mois_long(m); return ("d'" if s[0] in "aeiouéâ" else "de ") + s
@@ -90,7 +105,7 @@ def nature_emplois(e):
     if e.get("type") in ("redressement", "sauvegarde") or _re.search(r"redressement|sauvegarde|repreneur|offres? de reprise", t): return NATURES[2]
     return NATURES[0]
 
-CREDIT = "Plans sociaux et faillites en France, oraclemarin.fr/plans-sociaux, Quentin Closset (quentinclosset@gmail.com)"
+CREDIT = "Plans sociaux et faillites en France, oraclemarin.fr/plans-sociaux, Quentin Closset (ADRESSE_DE_CONTACT)"
 LICENCE_URL = "https://creativecommons.org/licenses/by-nc-sa/4.0/deed.fr"
 LICENCE = ("Licence CC BY-NC-SA 4.0 (mention de la source, pas d'usage commercial, partage dans les mêmes conditions) ; la presse, la recherche, les syndicats et les "
            "associations peuvent réutiliser librement, y compris dans un article ou une infographie. Usage commercial : demander l'accord de l'éditeur. "
@@ -251,7 +266,7 @@ def faq(f):
         q.append((f"Combien de plans sociaux en France en {a['depuis'][:4]} ?",
                   f"Ce site recense {fr(p['plans'])} plans de licenciement, suppressions de postes ou fermetures annoncés depuis le 1er janvier {a['depuis'][:4]}, "
                   f"pour au moins {fr(p['min'])} emplois (chiffres annoncés, dédoublonnés par entreprise). La liste vient de la « liste noire » publiée par la CGT (depuis 2023) "
-                  "et de la presse (suivie depuis janvier 2025) : ce n'est pas un décompte officiel des plans de sauvegarde de l'emploi."))
+                  "et de la presse (suivie depuis janvier 2023, de façon moins complète avant 2025) : ce n'est pas un décompte officiel des plans de sauvegarde de l'emploi."))
     d5 = f.get("derniers_50") or []
     if d5:
         q.append(("Quelles entreprises de plus de 50 salariés sont en redressement ou en liquidation judiciaire ?",
@@ -304,18 +319,23 @@ def head_meta(titre, desc, url, image=BASE_URL + "/og.png", robots="index,follow
             f'<link rel="icon" href="{BASE}/favicon.png" type="image/png">')
 
 NAV = [("", "Carte et liste"), ("explorer/", "Explorer"), ("carte-departements/", "Carte par département"), ("cette-semaine/", "Cette semaine"), ("faillites-entreprises/", "Chiffres"),
-       ("departements/", "Départements"), ("presse/", "Presse"), ("groupes/", "Carte des groupes"), ("cgt/", "Liste noire CGT")]
+       ("departements/", "Départements"), ("presse/", "Presse"), ("groupes/", "Carte des groupes"), ("territoires/", "Territoires exposés"), ("pistes/", "Pistes à explorer"), ("cgt/", "Liste noire CGT")]
 COURANT = ' aria-current="page"'
+PRINCIPAL = ("", "cette-semaine/", "explorer/", "faillites-entreprises/", "presse/", "pistes/", "cgt/")
 def nav_html(actif=""):
-    return '<nav class="nav" aria-label="Pages du site">' + " ".join(
-        f'<a href="{BASE}/{p}"{COURANT if p == actif else ""}{' class="nav-cgt"' if p == "cgt/" else ""}>{esc(l)}</a>' for p, l in NAV) + "</nav>"
+    def lien(p, l): return f'<a href="{BASE}/{p}"{COURANT if p == actif else ""}{' class="nav-cgt"' if p == "cgt/" else ""}>{esc(l)}</a>'
+    prin = [lien(p, l) for p, l in NAV if p in PRINCIPAL]
+    plus = [(p, l) for p, l in NAV if p not in PRINCIPAL]
+    ouvert = " open" if any(p == actif for p, l in plus) else ""
+    return ('<nav class="nav" aria-label="Pages du site">' + " ".join(prin) + f'<details{ouvert}><summary>Géographie et groupes</summary><div>' + " ".join(lien(p, l) for p, l in plus) + "</div></details></nav>")
+
 
 PIED = (f'<footer>Projet indépendant, édité par <strong>{EDITEUR}</strong>, développeur à Perros-Guirec · '
         f'<a href="https://oraclemarin.fr/apropos/">À propos</a> · <a href="{BASE}/presse/">Presse</a> · <a href="mailto:{CONTACT}">Signaler une erreur</a> · <a href="https://buymeacoffee.com/capoupascap" rel="noopener" target="_blank">Soutenir</a> · '
         f'<a href="https://oraclemarin.fr/rgpd/#plans-sociaux">Mentions légales et données personnelles</a> · <a href="{BASE}/methode/">Méthode et corrections</a> · '
-        f'<a href="{BASE}/en-un-an/">Infographie</a> · <a href="{BASE}/recoupements/">Recoupements</a> · <a href="{BASE}/liste/">Plans sociaux {dt.date.today().year}</a> · <a href="{BASE}/alertes/">Alertes</a> · '
+        f'<a href="{BASE}/en-un-an/">Infographie</a> · <a href="{BASE}/recoupements/">Recoupements</a> · <a href="{BASE}/territoires/">Territoires exposés</a> · <a href="{BASE}/pistes/">Pistes à explorer</a> · <a href="{BASE}/liste/">Plans sociaux {dt.date.today().year}</a> · <a href="{BASE}/alertes/">Alertes</a> · '
         f'<a href="{BASE}/donnees/">Données</a> · <a href="{BASE}/rss.xml">Flux RSS</a> · <a href="{BASE}/llms.txt">llms.txt</a> · '
-        f'<a href="https://oraclemarin.fr/cabrule/">ça brûle, la carte des mobilisations</a></footer>')
+        f'<a href="https://oraclemarin.fr/ville/">Votre ville en chiffres</a> · <a href="https://oraclemarin.fr/ressources/">Cartes à imprimer pour l’enseignement</a> · <a href="https://oraclemarin.fr/cabrule/">ça brûle, la carte des mobilisations</a></footer>')
 
 CSS = """:root{--acier:#E9ECEF;--papier:#F7F8F9;--encre:#17202E;--gris:#5B6573;--trait:#C9CFD6;--signal:#E8B21E;--liq:#B8361E;--red:#D9822B;--sauv:#3E7CB1}
 *{box-sizing:border-box}body{margin:0;background:var(--acier);color:var(--encre);font:16px/1.6 Barlow,system-ui,sans-serif}
@@ -325,7 +345,7 @@ header,main,footer,.nav{max-width:980px;margin:0 auto;padding:0 20px}header{padd
 h1{font:700 clamp(2rem,6vw,3.4rem)/1 "Barlow Condensed",sans-serif;margin:14px 0 10px}
 h2{font:700 1.6rem/1.15 "Barlow Condensed",sans-serif;margin:30px 0 8px}h3{font-size:1.05rem;margin:18px 0 4px}
 .nav{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:15px;padding-top:6px;padding-bottom:6px;border-bottom:1px solid var(--trait)}
-.nav a{text-decoration:none;color:var(--gris)}.nav a[aria-current]{color:var(--encre);font-weight:600;text-decoration:underline}.nav a.nav-cgt{color:#B8361E;font-weight:700}.nav a.nav-cgt[aria-current]{color:#B8361E}
+.nav a{text-decoration:none;color:var(--gris)}.nav a[aria-current]{color:var(--encre);font-weight:600;text-decoration:underline}.nav a.nav-cgt{color:#B8361E;font-weight:700}.nav details{position:relative}.nav summary{cursor:pointer;color:var(--gris);list-style:none}.nav summary::-webkit-details-marker{display:none}.nav details[open] summary{color:var(--encre);font-weight:600}.nav details div{position:absolute;z-index:20;background:#fff;border:1px solid var(--trait);padding:8px 14px;display:flex;flex-direction:column;gap:6px;min-width:200px;box-shadow:0 4px 12px rgba(0,0,0,.12)}.nav a.nav-cgt[aria-current]{color:#B8361E}
 .chapo{font-size:18px;max-width:70ch}.meta{color:var(--gris);font-size:14px}.bloc{background:var(--papier);border:1px solid var(--trait);border-top:3px solid var(--encre);padding:6px 18px 14px;margin:18px 0}
 .gros b{font:700 1.5rem "Barlow Condensed",sans-serif}table{border-collapse:collapse;width:100%;font-size:15px;margin:8px 0}
 th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--trait);vertical-align:top}th{font-weight:600;background:var(--papier)}
@@ -339,7 +359,7 @@ def page(titre, desc, chemin, corps, graph=None, actif="", robots="index,follow"
     return ('<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
             f'<title>{esc(titre)}</title><meta name="description" content="{esc(desc)}">{head_meta(titre, desc, url, robots=robots)}'
             f'<link rel="stylesheet" href="{BASE}/fonts/fonts.css">'
-            f'<style>{CSS}</style>{ld_tag(graph) if graph else ""}</head><body>'
+            f'<style>{CSS}</style>{ld_tag(graph) if graph else ""}<script src="/om-bar.js?v=2" defer></script></head><body>'
             f'<header><a class="marque" href="{BASE}/">{esc(NOM)}</a></header>{nav_html(actif)}<main>{corps}</main>{PIED}</body></html>')
 
 def ecrire(chemin, contenu):

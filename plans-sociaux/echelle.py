@@ -206,6 +206,6 @@ def page(D, F, AN, ents, p50, part_nat, top5):
     html_page = ('<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
                  f'<title>{esc(titre)}</title><meta name="description" content="{esc(desc)}">{S.head_meta(titre, desc, url)}'
                  f'<link rel="stylesheet" href="{S.BASE}/fonts/fonts.css">'
-                 f'<style>{CSS}</style>{S.ld_tag(graph)}</head><body>{corps}</body></html>')
+                 f'<style>{CSS}</style>{S.ld_tag(graph)}<script src="/om-bar.js?v=2" defer></script></head><body>{corps}</body></html>')
     S.ecrire("en-un-an/index.html", html_page)
     return url

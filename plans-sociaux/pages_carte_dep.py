@@ -44,7 +44,7 @@ def p_carte(EV, FICHES):
              '<li><b>Plans sociaux et fermetures</b> : annonces relevées dans la liste noire de la CGT et dans la presse, rattachées au département du site concerné quand la source le précise (sinon au siège). Un même plan cité par plusieurs sources n\'est compté qu\'une fois.</li>'
              '<li><b>Emplois annoncés</b> : emplois supprimés ou menacés selon la source (nombre le plus élevé annoncé pour le plan). Un nombre n\'est pas toujours connu : un département peut compter des plans sans emplois renseignés.</li>'
              '<li><b>Procédures collectives</b> : liquidations, redressements et sauvegardes publiés au BODACC pour des entreprises de 50 salariés et plus ; les salariés indiqués sont l\'effectif de ces entreprises, pas des suppressions.</li>'
-             '<li><b>Pour 100 000 habitants</b> : population estimée de 2026, pas un chiffre officiel. Les périodes ne couvrent pas les mêmes sources (BODACC depuis mars 2025, presse depuis janvier 2025, liste CGT depuis 2023).</li>'
+             '<li><b>Pour 100 000 habitants</b> : population estimée de 2026, pas un chiffre officiel. Les périodes ne couvrent pas les mêmes sources (BODACC depuis ' + __import__('commun').bodacc_depuis() + ', presse et liste CGT depuis 2023, moins complètes avant 2025).</li>'
              '<li>Ce site met des faits publics en regard et n\'établit aucun lien de cause. <a href="' + S.BASE + '/methode/">Méthode et limites</a>.</li></ul>'
              + "<script>" + JS.replace("__DATA__", data).replace("__BASE__", S.BASE) + "</script>")
     titre = "Carte par département : plans sociaux, fermetures et faillites en France"

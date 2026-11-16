@@ -57,6 +57,22 @@ def nom_de(evs):
     n = (b[0] if b else evs[0]).get("entreprise") or ""
     return n.split(" (")[0] if n.count("(") == 1 and n.endswith(")") else n
 
+
+_EMPS, _OUVS = {}, {}
+def _emp_serie(insee):
+    """Emploi salarié privé de la commune au 31 décembre, 2006-2025 (Urssaf)."""
+    if not _EMPS:
+        try: _EMPS.update(json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "emploi_communes_serie.json"), encoding="utf-8")))
+        except Exception: _EMPS["_"] = None
+    return _EMPS.get(insee)
+
+def _ouv_secteur(naf):
+    """Ouvertures de procédures collectives de la division NAF (BODACC, 2008-2025)."""
+    if not _OUVS:
+        try: _OUVS.update(json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "ouvertures_secteur.json"), encoding="utf-8")))
+        except Exception: _OUVS["_"] = None
+    return _OUVS.get((naf or "")[:2])
+
 def case(lab, val, det=""):
     return f'<div class="fc"><div class="lab">{esc(lab)}</div><div class="val">{val}</div><div class="det">{det}</div></div>'
 
@@ -255,6 +271,20 @@ def fiche(siren, evs):
                + ". Montants attribués d’après les jeux ouverts de ces collectivités, pas forcément versés ; seules celles qui publient leurs conventions figurent ici. Sources : "
                + " · ".join('<a href="%s" rel="noopener">%s</a>' % (esc(u), esc(n[:50])) for u, n in sorted({(l["url"], l["financeur"]) for l in SUB})[:4]))
         ai.append(("Subventions des collectivités (données ouvertes)", eu(tot), det))
+    try: ARR = [r for r in json.load(open("/var/www/quotas-carbone/arret.json", encoding="utf-8")).get("sites", []) if r.get("siren") == siren]
+    except Exception: ARR = []
+    if ARR:    # quotas de CO2 gratuits alloués à des sites aux émissions nulles ou en chute (page /quotas-carbone/arret.html)
+        LQ = {"confirme": "arrêt corroboré", "probable": "arrêt probable", "non_etabli": "arrêt non établi", "actif": "site actif (baisse sans arrêt)"}
+        nq = lambda n: f"{round(n):,}".replace(",", " ")
+        lis = ""
+        for r in ARR:
+            src = " · ".join('<a href="%s" rel="noopener">source</a>' % esc(w[1]) for w in r.get("web") or [] if w[1])
+            lis += (f"<li><b>{esc(r['site'])}</b> ({esc(r['commune'] or '')}) : {LQ.get(r['niveau'], '')}. {nq(r['alloc_2022_2025'])} quotas gratuits alloués en 2022-2025 pour {nq(r['emis_2022_2025'])} t d’émissions vérifiées, "
+                    f"soit {r['valeur_basse_Meur']:.1f} à {r['valeur_haute_Meur']:.1f} M€ de différence en valeur indicative. " + esc(r["controle_emissions"][1]) + " "
+                    + " ".join(esc(w[0]) for w in r.get("web") or []) + (" · " + src if src else "") + "</li>")
+        cs.append(case("Quotas de CO₂ gratuits", nq(sum(r["surplus_2022_2025"] for r in ARR)) + " quotas de différence",
+                       "<ul>" + lis + "</ul>Les quotas sont alloués, pas forcément vendus : le registre ne dit pas ce qu’en fait le site. Les règles prévoient un ajustement après cessation, avec délai. "
+                       "<a href=\"/quotas-carbone/arret.html\">Méthode, limites et sites comparables</a>."))
     lb = next((e["lobbying"] for e in evs if e.get("lobbying")), None)
     if ai:
         tete = next((v for t, v, d in ai if t.startswith("Aide avant")), None) or next((v for t, v, d in ai if t.startswith("Aides ADEME")), None) or ai[0][1]
@@ -264,6 +294,18 @@ def fiche(siren, evs):
         cs.append(case("Amende retards de paiement", eu(sd["montant"]), f"DGCCRF, {esc(sd['date'][:7])}"))
     pl = next((e["poids_local"] for e in evs if (e.get("poids_local") or {}).get("part_commune_pct", 0) >= 1), None)
     if pl: cs.append(case("Poids local", f"{str(pl['part_commune_pct']).replace('.', ',')} %", f"de l'emploi salarié privé de {esc(pl['commune'])} (URSSAF {pl['annee']})"))
+    pl2 = next((e["poids_local"] for e in evs if (e.get("poids_local") or {}).get("insee")), None)
+    if pl2:
+        sr = _emp_serie(pl2["insee"])
+        if sr and len(sr) == 20 and sr[0] and sr[-1] and min(sr[0], sr[-1]) >= 100:
+            v = 100 * (sr[-1] / sr[0] - 1)
+            cs.append(case("Emploi de la commune depuis 2006", ("+" if v > 0 else "−" if v < 0 else "") + f"{abs(v):.0f}".replace(".", ",") + " %",
+                           f"emploi salarié privé de {esc(pl2['commune'])} : {fr(sr[0])} (2006) → {fr(sr[-1])} (2025), URSSAF. Situe la commune ; aucun lien de cause avec l'annonce."))
+    ov = _ouv_secteur(naf)
+    if ov and ov.get("rapport") is not None:
+        cs.append(case("Secteur : ouvertures de procédures", f"×{str(ov['rapport']).replace('.', ',')}",
+                       f"en 2025 ({fr(ov['n2025'])}) par rapport à la moyenne 2015-2019 ({fr(round(ov['base']))}) dans la division NAF {esc(naf[:2])} (« {esc(ov['lib'])} ») en France, tous établissements. "
+                       "Situe le secteur, pas l'entreprise (BODACC, Sirene)."))
     acs = {a["url"]: a for e in evs for a in e.get("accords") or []}
     if acs:
         cats = sorted({a["libelle"] for a in acs.values()})
@@ -336,11 +378,16 @@ def fiche(siren, evs):
              + (f'<h2>Contexte financier et public</h2><div class="fiche-grille">{"".join(cs)}</div>' if cs else "")
              + _liens_widget(siren) + proc + ops_html + liens
              + f'<p class="meta">Fiche générée automatiquement à partir de sources publiques (BODACC, liste CGT, presse, accords d’entreprise publiés sur Légifrance, INSEE, URSSAF, DECP, ADEME, HATVP, DGCCRF, ça brûle), mise à jour plusieurs fois par jour. '
-             f'Une erreur ? <a href="mailto:quentinclosset@gmail.com?subject=Fiche%20{siren}">Signalez-la</a>. <a href="{S.BASE}/methode/">Méthode et limites</a>.</p>'
+             f'Une erreur ? <a href="mailto:ADRESSE_DE_CONTACT?subject=Fiche%20{siren}">Signalez-la</a>. <a href="{S.BASE}/methode/">Méthode et limites</a>.</p>'
              f'<p><b>Vous suivez ce dossier ?</b> Article, section syndicale, enquête : l’outil est gratuit et fait par une seule personne. '
-             f'<a href="mailto:quentinclosset@gmail.com?subject=Fiche%20{siren}%20%E2%80%93%20j%27utilise%20l%27outil">Dites-moi à quoi il vous sert</a>, ça m’aide à l’améliorer.</p>')
+             f'<a href="mailto:ADRESSE_DE_CONTACT?subject=Fiche%20{siren}%20%E2%80%93%20j%27utilise%20l%27outil">Dites-moi à quoi il vous sert</a>, ça m’aide à l’améliorer.</p>')
     url = S.BASE_URL + "/" + chemin
-    graph = [S.site_ld(), {"@type": "WebPage", "name": titre, "url": url, "inLanguage": "fr-FR", "dateModified": dt.date.today().isoformat(), "isPartOf": {"@id": S.BASE_URL + "/#site"},
+    corps += (f'<p class="meta cite"><b>Citer cette fiche</b> : Closset Q., Oracle Marin, « {titre} », {url}, mise à jour du {dt.date.today().isoformat()}, '
+              f'licence <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.fr" rel="license">CC BY-NC-SA 4.0</a> (usage commercial sur accord).</p>')
+    graph = [S.site_ld(), {"@type": "WebPage", "name": titre, "url": url, "inLanguage": "fr-FR", "dateModified": dt.date.today().isoformat(),
+             "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/", "isAccessibleForFree": True,
+             "author": {"@type": "Person", "name": "Quentin Closset", "url": "https://oraclemarin.fr/apropos/"},
+             "publisher": {"@type": "Organization", "name": "Oracle Marin", "url": "https://oraclemarin.fr/"}, "isPartOf": {"@id": S.BASE_URL + "/#site"},
              "about": {"@type": "Organization", "name": nom, "identifier": {"@type": "PropertyValue", "propertyID": "SIREN", "value": siren},
                        "sameAs": [f"https://annuaire-entreprises.data.gouv.fr/entreprise/{siren}"]}},
              {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": S.NOM, "item": S.BASE_URL + "/"},

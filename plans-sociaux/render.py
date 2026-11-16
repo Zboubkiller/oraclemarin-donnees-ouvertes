@@ -27,6 +27,8 @@ def ap(e):
     if m and m.get("n"): p.append(f'<a href="{html.escape(m["url"])}">{m["n"]} marché(s) public(s)</a> (titulaire unique), {eu(m["total"])} notifiés ({m["de"]}–{m["a"]})')
     if m and m.get("accords_cadres"): p.append(f'{m["accords_cadres"]["n"]} accord(s)-cadre non comptés (plafonds de {eu(m["accords_cadres"]["plafond"])}, pas des sommes versées)')
     if a.get("ademe"): p.append(f'<a href="{html.escape(a["ademe"]["url"])}">{a["ademe"]["n"]} aide(s) ADEME</a> pour {eu(a["ademe"]["total"])}')
+    t = a.get("tam")
+    if t and t.get("n"): p.append(f'<a href="{html.escape(t["url"])}">{t["n"]} aide(s) d&#39;État</a> au registre européen pour {eu(t["total_min"])}' + (f' à {eu(t["total_max"])}' if t["total_max"] > t["total_min"] else ""))
     if a.get("minimis"): p.append(f'<a href="{html.escape(a["minimis"]["url"])}">{a["minimis"]["n"]} aide(s) de minimis</a> pour {eu(a["minimis"]["total"])}')
     av = a.get("avant_annonce")
     if av and av["total"] > 0: h += f'<div>Avant {av["annee"]} (année de l&#39;annonce) : <b>{eu(av["total"])}</b> de marchés et d&#39;aides ADEME.</div>'
@@ -143,7 +145,7 @@ def synthese_html():
                    + decisions_html() + '</div>')
     sy = d.get("synthese")
     if sy and sy.get("plans_avec_comptes_fiables"):
-        cb = "".join(f'<li><b>{html.escape(c["entreprise"] or "")}</b>, {c["emplois"] and fr(c["emplois"]) + " emplois, " or ""}annonce {html.escape(c["date"] or "")} : '
+        cb = "".join(f'<li><b>{html.escape(c["entreprise"] or "")}</b>, {c["emplois"] and fr(c["emplois"]) + " emplois" + (" (annonce de groupe, possiblement mondiale)" if c["emplois"] >= 5000 else "") + ", " or ""}annonce {html.escape(c["date"] or "")} : '
                      f'résultat net {eu(c["resultat_net"])} ({c["annee_comptes"]})</li>' for c in sy["cas_benefice"][:5])
         cp = "".join(f'<li><b>{html.escape(c["entreprise"] or "")}</b>, annonce {html.escape(c["date"] or "")} : '
                      + (f'{c["n"]} aide(s) dans les 24 mois, dont la plus récente {c["plus_recente"]["delai_mois"]} mois avant ({html.escape(c["plus_recente"]["source"])}'

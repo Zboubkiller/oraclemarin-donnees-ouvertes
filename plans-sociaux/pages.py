@@ -529,10 +529,10 @@ def p_donnees():
              "<li><b>Les sources ne couvrent pas les mêmes périodes</b> (tableau ci-dessous) : une courbe mensuelle tirée du fichier montre l'arrivée des sources autant que la conjoncture. Pour une tendance, utilisez les séries officielles (Banque de France) ou tendance.json.</li>"
              "<li><b>Fiabilité</b> : ne publiez que les lignes au rattachement <i>sûr</i> ou, après vérification, <i>probable</i>. La liste CGT est une source syndicale (« liste noire ») : citez-la comme telle. Les lignes <b>exclu_des_totaux</b> (pas d'entreprise précise, chiffre invérifiable) ne sont pas comptées sur le site.</li></ul>"
              "<h2>Période couverte par source</h2><div class=\"tablo\"><table><thead><tr><th>Source</th><th>Période</th><th>Remarque</th></tr></thead><tbody>"
-             "<tr><td>BODACC (procédures collectives, entreprises de 50 salariés et plus)</td><td>Depuis janvier 2025</td><td>Date du jugement et date de publication</td></tr>"
+             "<tr><td>BODACC (procédures collectives, entreprises de 50 salariés et plus)</td><td>Depuis " + __import__('commun').bodacc_depuis() + " (rattrapage en cours, semaine par semaine, vers janvier 2023)</td><td>Date du jugement et date de publication</td></tr>"
              "<tr><td>Liste CGT (« liste noire »)</td><td>Août 2023 à mars 2026 (dernière édition publiée par la CGT)</td><td>Dates au mois près (le 15 du mois) ; 12 lignes sans date</td></tr>"
              "<tr><td>Accords d'entreprise (Légifrance)</td><td>Accords signés depuis janvier 2024 (historique complet de la base Légifrance)</td><td>Pas de nombre de postes</td></tr>"
-             "<tr><td>Presse</td><td>Depuis janvier 2025 (rattrapé par recherche d'actualités semaine par semaine jusqu'à septembre 2026, puis en continu)</td><td>Titres et liens ; articles hors de France ou sans suppression collective retirés ; couverture moins complète pour les petits titres régionaux</td></tr></tbody></table></div>"
+             "<tr><td>Presse</td><td>Depuis janvier 2023 (rattrapé par recherche d'actualités semaine par semaine jusqu'à septembre 2026, puis en continu ; couverture beaucoup moins complète en 2023-2024 qu'ensuite)</td><td>Titres et liens ; articles hors de France ou sans suppression collective retirés ; couverture moins complète pour les petits titres régionaux</td></tr></tbody></table></div>"
              + completude_html() + "<h2>Champs</h2><ul>"
              "<li><b>evenement_id</b> : identifiant commun aux lignes d'un même événement (même SIREN, moins de 180 jours d'écart).</li>"
              "<li><b>fiabilite_rapprochement</b> : <i>sur</i> (SIREN fourni par la source, ou établissement de l'entreprise trouvé dans la commune), <i>probable</i> (nom exact et établissement dans le département), <i>indicatif</i> (nom seul).</li>"
@@ -683,6 +683,27 @@ if __name__ == "__main__":
         import pages_recoupements; urls_a.append(pages_recoupements.p_recoupements(EV, FICHES))     # page publique : dans le sitemap
     except Exception as ex:
         print("recoupements (page) :", ex)
+    try:
+        import pages_territoires; urls_a.append(pages_territoires.p_territoires(EV, FICHES))
+    except Exception as ex:
+        print("territoires (page) :", ex)
+    try:
+        import pages_sols; urls_a.append(pages_sols.p_sols(EV, FICHES))
+    except Exception as ex:
+        print("sites classés (page) :", ex)
+    try:
+        import pages_audit; urls_a.append(pages_audit.p_audit(EV, FICHES))
+    except Exception as ex:
+        print("audit donnée (page) :", ex)
+    try:
+        import pages_reprises; _u = pages_reprises.p_reprises(EV, FICHES)
+        if _u: urls_a.append(_u)
+    except Exception as ex:
+        print("reprises (page) :", ex)
+    try:
+        import pages_pistes; urls_a.append(pages_pistes.p_pistes(EV, FICHES))
+    except Exception as ex:
+        print("pistes (page) :", ex)
     try:
         import pages_liens; urls_a.append(pages_liens.p_liens(EV, FICHES))
     except Exception as ex:

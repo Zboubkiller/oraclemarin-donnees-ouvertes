@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plans sociaux et faillites en France : l'observatoire open-data</title>
+<meta name="description" content="Suivi cartographique et quotidien des plans sociaux, fermetures de sites et procédures collectives (liquidations, redressements) touchant les entreprises de 50 salariés et plus en France.">
+{{HEAD}}
+<script defer src="/analytics/script.js" data-website-id="f4b5bd49-4419-413b-a170-8c6e276bf636"></script>
+<link rel="stylesheet" href="lib/leaflet.css">
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+/* ========================================================
+   DESIGN SYSTEM - Style Journalisme d'Enquête & Open-Data
+   ======================================================== */
+:root {
+  --fond: #F8F9FA;
+  --surface: #FFFFFF;
+  --surface-alt: #F3F4F6;
+  --encre: #111827;
+  --encre-douce: #374151;
+  --gris: #6B7280;
+  --trait: #E5E7EB;
+  --trait-fort: #111827;
+  
+  --signal: #E8B21E;
+  --liq: #991B1B;       /* Rouge brique - Liquidation */
+  --red: #C2410C;       /* Ambre chaud - Redressement */
+  --sauv: #2563EB;      /* Bleu ardoise - Sauvegarde */
+  --plan: #111827;      /* Noir d'encre - Plan social */
+  --ferm: #6B21A8;      /* Pourpre - Fermeture */
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--fond);
+  color: var(--encre);
+  font: 16px/1.55 Barlow, system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible, select:focus-visible {
+  outline: 3px solid var(--signal);
+  outline-offset: 2px;
+}
+
+.cadre {
+  max-width: 1220px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* ========================================================
+   HEADER ÉDITORIAL ÉPURÉ
+   ======================================================== */
+header.site-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--trait);
+  padding: 22px 0 16px;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gris);
+  margin-bottom: 6px;
+  letter-spacing: 0.02em;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  background-color: var(--liq);
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 0 3px rgba(153, 27, 27, 0.15);
+}
+
+h1 {
+  font: 700 clamp(2.1rem, 5vw, 3.4rem)/1.02 "Barlow Condensed", sans-serif;
+  margin: 0 0 6px;
+  letter-spacing: -0.015em;
+  color: var(--encre);
+}
+
+.chapo {
+  font-size: 16px;
+  color: var(--encre-douce);
+  margin: 0 0 14px;
+  max-width: 72ch;
+  line-height: 1.45;
+}
+
+.ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 0;
+}
+
+.cta {
+  background: var(--encre);
+  color: #fff;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 4px;
+  transition: opacity 0.15s;
+}
+.cta:hover { opacity: 0.9; }
+.cta.sec {
+  background: transparent;
+  color: var(--encre);
+  border: 1px solid var(--trait-fort);
+}
+.cta.sec:hover { background: var(--surface-alt); }
+
+/* Navigation du site */
+.nav {
+  max-width: 1220px;
+  margin: 0 auto;
+  padding: 8px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 14.5px;
+  border-bottom: 1px solid var(--trait);
+  background: var(--surface);
+}
+.nav a { text-decoration: none; color: var(--gris); }
+.nav details{position:relative}.nav summary{cursor:pointer;color:var(--gris);list-style:none}.nav summary::-webkit-details-marker{display:none}.nav details[open] summary{color:var(--encre);font-weight:600}.nav details div{position:absolute;z-index:20;background:var(--surface,#fff);border:1px solid var(--trait);padding:8px 14px;display:flex;flex-direction:column;gap:6px;min-width:200px;box-shadow:0 4px 12px rgba(0,0,0,.12)}
+.nav a:hover { color: var(--encre); }
+.nav a[aria-current] { color: var(--encre); font-weight: 700; border-bottom: 2px solid var(--encre); padding-bottom: 2px; }
+.nav a.nav-cgt { color: var(--liq); font-weight: 700; }
+
+/* ========================================================
+   BANDEAU UNIQUE DE CHIFFRES CLÉS (KPIs)
+   ======================================================== */
+.kpi-strip {
+  background: var(--surface);
+  border-bottom: 1px solid var(--trait);
+  padding: 16px 0 20px;
+}
+
+.kpi-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.control-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gris);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.segmented-control {
+  display: inline-flex;
+  background: var(--surface-alt);
+  border-radius: 6px;
+  padding: 3px;
+  border: 1px solid var(--trait);
+}
+
+.segmented-control button {
+  border: none;
+  background: transparent;
+  padding: 6px 14px;
+  font: 600 13px Barlow, sans-serif;
+  color: var(--gris);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.segmented-control button[aria-pressed="true"] {
+  background: var(--surface);
+  color: var(--encre);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 820px) {
+  .kpi-grid { grid-template-columns: 1fr; gap: 14px; }
+}
+
+.kpi-card {
+  border-left: 3px solid var(--trait-fort);
+  padding: 2px 0 2px 14px;
+}
+
+.kpi-card.alerte {
+  border-left-color: var(--liq);
+}
+
+.kpi-label {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--gris);
+}
+
+.kpi-value {
+  display: block;
+  font: 800 clamp(2.3rem, 4vw, 3.2rem)/1.05 "Barlow Condensed", sans-serif;
+  font-variant-numeric: tabular-nums;
+  color: var(--encre);
+  margin: 2px 0;
+}
+
+.kpi-subtext {
+  display: block;
+  font-size: 12.5px;
+  color: var(--gris);
+  line-height: 1.35;
+  max-width: 45ch;
+}
+
+/* ========================================================
+   TIROIR D'ANALYSE DÉPLIABLE (<details>)
+   ======================================================== */
+.analysis-drawer {
+  margin: 16px auto 20px;
+}
+
+.drawer-panel {
+  background: var(--surface);
+  border: 1px solid var(--trait);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.drawer-trigger {
+  padding: 12px 18px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  font-size: 14.5px;
+  user-select: none;
+  list-style: none;
+  background: #FAFBFD;
+  transition: background 0.15s;
+}
+
+.drawer-trigger::-webkit-details-marker { display: none; }
+.drawer-trigger:hover { background: var(--surface-alt); }
+
+.drawer-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--encre);
+}
+
+.drawer-badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gris);
+  background: var(--surface-alt);
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--trait);
+}
+
+.drawer-panel[open] .drawer-trigger {
+  border-bottom: 1px solid var(--trait);
+  background: var(--surface-alt);
+}
+
+.drawer-content {
+  padding: 20px;
+  background: var(--surface);
+}
+
+.drawer-content .synthese {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.bloc {
+  background: #FAFAFB;
+  border: 1px solid var(--trait);
+  border-top: 3px solid var(--encre);
+  padding: 12px 18px 16px;
+  border-radius: 4px;
+}
+.bloc h2 { margin-top: 6px; font-size: 1.3rem; }
+.bloc h3 { font: 600 0.95rem Barlow, sans-serif; margin: 14px 0 4px; }
+.gros { font-size: 15px; line-height: 1.45; }
+ul.cas { margin: 0; padding-left: 16px; font-size: 14px; }
+ul.cas li { margin: 3px 0; }
+
+/* ========================================================
+   DISPOSITION PRINCIPALE (CARTE + FLUX)
+   ======================================================== */
+main.explorer-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 24px;
+  padding-bottom: 40px;
+}
+
+@media (max-width: 900px) {
+  main.explorer-layout { grid-template-columns: 1fr; }
+}
+
+.filtres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+
+.filtres select {
+  font: 500 14px Barlow, sans-serif;
+  padding: 7px 10px;
+  border: 1px solid var(--trait);
+  background: var(--surface);
+  color: var(--encre);
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.filtres select:focus {
+  outline: 2px solid var(--encre);
+}
+
+.map-wrapper {
+  border: 1px solid var(--trait);
+  border-radius: 6px;
+  overflow: hidden;
+  background: #dfe3e7;
+}
+
+#carte {
+  height: 570px;
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  #carte { height: 380px; }
+}
+
+.legende {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-size: 13px;
+  color: var(--gris);
+  padding: 8px 12px;
+  background: var(--surface);
+  border-top: 1px solid var(--trait);
+}
+
+.legende i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 5px;
+  vertical-align: -1px;
+}
+
+/* ========================================================
+   COLONNE FLUX D'ÉVÉNEMENTS
+   ======================================================== */
+.feed-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+  border-bottom: 2px solid var(--encre);
+  padding-bottom: 6px;
+}
+
+.feed-header h2 {
+  font: 700 1.35rem/1 "Barlow Condensed", sans-serif;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+#liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  height: 605px;
+  overflow-y: auto;
+  border: 1px solid var(--trait);
+  border-radius: 6px;
+  background: var(--surface);
+}
+
+#liste li {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--trait);
+  transition: background 0.12s;
+}
+
+#liste li:hover, #liste li.actif {
+  background: #F8FAFC;
+}
+
+.ent {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--encre);
+}
+
+.meta {
+  color: var(--gris);
+  font-size: 13.5px;
+  line-height: 1.4;
+  margin-top: 3px;
+}
+
+.meta a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Badges de procédure sobres */
+.tag {
+  display: inline-block;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 2px 7px;
+  border-radius: 3px;
+  color: #fff;
+  margin-right: 6px;
+  vertical-align: 1px;
+}
+
+.t-liquidation { background: var(--liq); }
+.t-redressement { background: var(--red); }
+.t-sauvegarde { background: var(--sauv); }
+.t-plan { background: var(--plan); }
+.t-fermeture { background: var(--ferm); }
+
+.statut { font-style: italic; }
+.alerte { font-weight: 600; color: var(--liq); }
+
+/* Badge sobre et lisible pour l'argent public et les bénéfices */
+.ap summary{cursor:pointer;font-weight:600;list-style-position:inside}
+.ap[open] summary{margin-bottom:5px}
+.ap {
+  font-size: 13.5px;
+  margin-top: 6px;
+  padding: 6px 10px;
+  background: #FEFCE8;
+  border-left: 3px solid #EAB308;
+  border-radius: 0 4px 4px 0;
+  color: #713F12;
+  line-height: 1.4;
+}
+
+.ap a {
+  color: #854D0E;
+  font-weight: 600;
+}
+
+/* ========================================================
+   SECTIONS INFÉRIEURES (FAQ, MÉTHODE, FOOTER)
+   ======================================================== */
+section.methode {
+  padding: 20px 0 40px;
+}
+section.methode div { max-width: 76ch; }
+section.methode h2 { font: 700 1.6rem "Barlow Condensed", sans-serif; margin: 24px 0 8px; }
+
+footer {
+  padding: 20px 0 40px;
+  color: var(--gris);
+  font-size: 14px;
+  border-top: 1px solid var(--trait);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+<script src="/om-bar.js?v=2" defer></script></head>
+<body>
+
+<!-- EN-TÊTE DU SITE -->
+<header class="site-header">
+ <div class="cadre">
+  <div class="eyebrow">
+   <span class="live-dot" aria-hidden="true"></span>
+   <span>Observatoire quotidien BODACC & syndicats · Mis à jour le {{MAJ}}</span>
+  </div>
+  <h1>Plans sociaux et faillites en France</h1>
+  <p class="chapo">
+   Suivi quotidien des plans sociaux, des fermetures de sites et des procédures collectives en France. Le suivi détaillé porte sur les entreprises de 50 salariés et plus ; le compteur des procédures du BODACC compte toutes les tailles d’entreprise.
+  </p>
+  <div class="ctas">
+   <a class="cta" href="{{BASE}}/en-un-an/">Voir l'infographie : un an de faillites</a>
+   <a class="cta sec" href="{{BASE}}/explorer/">Explorer et filtrer les données</a>
+  </div>
+ </div>
+</header>
+
+{{NAV}}
+
+<!-- BANDEAU UNIQUE DE CHIFFRES CLÉS (KPIs) -->
+<section class="kpi-strip" aria-label="Compteur et chiffres clés">
+ <div class="cadre">
+  <div class="kpi-top">
+   <span class="control-label">Période d'observation :</span>
+   <div class="cpt-choix segmented-control" role="group" aria-label="Période du compteur">
+    <button type="button" id="p-annee" aria-pressed="true">Depuis le 1er janvier</button>
+    <button type="button" id="p-suivi" aria-pressed="false">30 derniers jours</button>
+   </div>
+  </div>
+  <div class="kpi-grid">
+   <div class="kpi-card">
+    <span class="kpi-label">Procédures collectives ouvertes</span>
+    <b class="kpi-value" id="cpt-n">{{CPT_N}}</b>
+    <small class="kpi-subtext" id="cpt-n-note">Décompte officiel au BODACC, toutes tailles d’entreprise, depuis le <span id="cpt-depuis">{{CPT_DEPUIS}}</span></small>
+   </div>
+   <div class="kpi-card alerte">
+    <span class="kpi-label">Emplois supprimés annoncés (min.)</span>
+    <b class="kpi-value" id="cpt-e">{{CPT_E}}</b>
+    <small class="kpi-subtext" id="cpt-e-note">{{CPT_E_NOTE}}</small>
+   </div>
+   <div class="kpi-card">
+    <span class="kpi-label">Salariés dans ces entreprises</span>
+    <b class="kpi-value" id="cpt-s">{{CPT_S}}</b>
+    <small class="kpi-subtext" id="cpt-s-note">{{CPT_S_NOTE}}</small>
+   </div>
+  </div>
+ </div>
+</section>
+
+<!-- ANALYSE MACRO DÉPLIABLE -->
+<section class="analysis-drawer cadre" aria-label="Analyses et tendances">
+ <details class="drawer-panel">
+  <summary class="drawer-trigger">
+   <span class="drawer-title">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+    Comprendre la tendance : défaillances (Banque de France), devenir des sites & aides publiques
+   </span>
+   <span class="drawer-badge">Déplier l'analyse</span>
+  </summary>
+  <div class="drawer-content">
+   <div class="synthese">
+    {{SYNTHESE}}
+   </div>
+  </div>
+ </details>
+</section>
+
+<!-- ZONE INTERACTIVE PRINCIPALE (CARTE & FLUX) -->
+<main class="cadre explorer-layout">
+ <div class="explorer-visual">
+  <div class="filtres">
+   <select id="f-type" aria-label="Type"><option value="">Tous les types</option><option value="liquidation">Liquidations</option><option value="redressement">Redressements</option><option value="sauvegarde">Sauvegardes</option><option value="plan social">Plans sociaux</option><option value="fermeture">Fermetures</option></select>
+   <select id="f-periode" aria-label="Période"><option value="30">30 derniers jours</option><option value="90">3 derniers mois</option><option value="365">12 derniers mois</option><option value="0">Tout</option></select>
+   <select id="f-dep" aria-label="Département"><option value="">Toute la France</option></select>
+   <select id="f-ap" aria-label="Argent public"><option value="">Avec ou sans argent public</option><option value="1">Ayant reçu de l'argent public</option><option value="2">Comptes bénéficiaires (marge d'au moins 3 %)</option></select>
+  </div>
+  <div class="map-wrapper">
+   <div id="carte" role="img" aria-label="Carte des événements"></div>
+   <div class="legende">
+    <span><i style="background:var(--liq)"></i>Liquidation</span>
+    <span><i style="background:var(--red)"></i>Redressement</span>
+    <span><i style="background:var(--sauv)"></i>Sauvegarde</span>
+    <span><i style="background:var(--plan)"></i>Plan social</span>
+    <span><i style="background:var(--ferm)"></i>Fermeture</span>
+   </div>
+  </div>
+ </div>
+
+ <div class="explorer-feed">
+  <div class="feed-header">
+   <h2 id="titre-liste">Derniers événements</h2>
+  </div>
+  <ul id="liste">{{LISTE}}</ul>
+ </div>
+</main>
+
+{{ENCART_LIENS}}
+
+<section class="methode cadre" id="faq"><div>{{FAQ}}</div></section>
+
+<section class="methode cadre" id="methode"><div>
+<h2>Méthode en bref</h2>
+<p><b>Faillites.</b> Le chiffre de référence est celui de la Banque de France (défaillances à la date du jugement, publiées par l'INSEE avec environ deux mois de recul). Le site y ajoute un décompte quotidien des jugements d'ouverture publiés au <a href="https://www.bodacc.fr/">BODACC</a>, plus récent mais irrégulier.</p>
+<p><b>Entreprises de 50 salariés et plus.</b> Chaque procédure est rapprochée de l'effectif déclaré à l'INSEE (tranche, donc un ordre de grandeur). Un redressement n'est pas un licenciement ; une liquidation entraîne en général la perte de tous les postes.</p>
+<p><b>Plans sociaux.</b> « Liste noire » de la CGT (source syndicale) et presse régionale et nationale, avec l'effectif annoncé et le lien vers la source.</p>
+<p><b>Recoupements.</b> Comptes (un exercice), marchés publics (DECP, hors accords-cadres), aides (ADEME, France Relance, minimis), emploi local (URSSAF). La fiabilité de chaque rapprochement est indiquée ; un rapprochement par nom seul peut viser la maison mère.</p>
+<p>Détail des sources, écarts connus et journal des corrections : <a href="{{BASE}}/methode/">méthode complète</a>. Données : <a href="{{BASE}}/donnees/">CSV et JSON</a>. Une erreur ? <a href="mailto:ADRESSE_DE_CONTACT">ADRESSE_DE_CONTACT</a>.</p>
+<p><b>Vous utilisez cet outil ?</b> Pour un article, un dossier syndical, une enquête ? Il est gratuit et fait par une seule personne : <a href="mailto:ADRESSE_DE_CONTACT?subject=J%27utilise%20plans-sociaux">dites-le-moi</a>, ça m’aide à savoir ce qui sert vraiment.</p>
+</div></section>
+
+<div class="cadre">
+{{PIED}}
+</div>
+
+<script src="lib/leaflet.js"></script>
+<script>
+const COUL={liquidation:'#991B1B',redressement:'#C2410C',sauvegarde:'#2563EB','plan social':'#111827',fermeture:'#6B21A8'};
+(function(){
+ const nf=n=>Math.round(n).toLocaleString('fr-FR');let C=null,P='annee',shown=0;
+ const d=document.getElementById('cpt-n'),e=document.getElementById('cpt-e'),note=document.getElementById('cpt-n-note'),enote=document.getElementById('cpt-e-note');
+ function choisir(p){P=p;shown=0;for(const k of['annee','suivi'])document.getElementById('p-'+k).setAttribute('aria-pressed',String(k===p));aff()}
+ document.getElementById('p-annee').onclick=()=>choisir('annee');document.getElementById('p-suivi').onclick=()=>choisir('suivi');
+ async function charge(){try{C=await (await fetch('compteur.json?'+Date.now())).json();aff()}catch(x){}}
+ function aff(){if(!C)return;const p=C.periodes[P];
+  document.getElementById('cpt-depuis').textContent=new Date(p.depuis+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+  const ea=p.emplois_annonces||{},sp=p.salaries_procedures||{};
+  e.textContent=nf(ea.min||0);
+  enote.textContent=nf(ea.plans||0)+' plans ou fermetures. '+(ea.doublons_retires?nf(ea.doublons_retires)+' doublons retirés. ':'')+p.note_emplois;
+  document.getElementById('cpt-s').textContent=nf(sp.min||0);
+  document.getElementById('cpt-s-note').textContent=nf(sp.entreprises||0)+' entreprises (bas de la tranche d\'effectif INSEE). Ce ne sont pas des licenciements.'+(sp.complet?'':' Provisoire : l\'historique BODACC des entreprises de 50 salariés et plus n\'est pas encore complet sur la période.');
+  if(p.reel>shown)shown=p.reel;tick()}
+ function tick(){if(!C)return;const p=C.periodes[P],s=Math.min((Date.now()-new Date(C.maj))/1000,6*3600);
+  const est=p.reel+C.rythme_par_jour*s/86400;if(est>shown)shown=est;d.textContent=nf(shown);
+  note.textContent='Décompte exact au BODACC à '+new Date(C.maj).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+' : '+nf(p.reel)+'. Entre deux relevés, le compteur avance au rythme moyen des 8 dernières semaines (environ '+nf(C.rythme_par_jour)+' par jour) : c\'est une estimation.'}
+ charge();setInterval(charge,300000);setInterval(tick,3000)})();
+const carte=L.map('carte',{scrollWheelZoom:false}).setView([46.6,2.4],5);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',{attribution:'Fond © Esri',maxZoom:16}).addTo(carte);
+const calque=L.layerGroup().addTo(carte);let DATA=[];let FI={};let DN={};
+const fiche=e=>FI[e.siren]&&(e.source==='BODACC'||['siren_source','siret_commune','nom+dep'].includes(e.lien))?'entreprise/'+FI[e.siren]+'/':null;
+const fmt=n=>n==null?'?':n.toLocaleString('fr-FR');
+function emplois(e){if(e.emplois_min==null)return'effectif inconnu';if(e.emplois_precision==='annoncé')return fmt(e.emplois_min)+(e.type==='redressement'||e.type==='sauvegarde'?' emplois menacés':' emplois annoncés');return(e.emplois_max>=10000?'10 000+':(e.emplois_min===e.emplois_max?fmt(e.emplois_min):fmt(e.emplois_min)+' à '+fmt(e.emplois_max)))+' salariés'}
+function dateFr(d,p){if(!d)return'date inconnue';const o=p==='mois'?{month:'long',year:'numeric'}:{day:'numeric',month:'long',year:'numeric'};return new Date(d+'T12:00:00').toLocaleDateString('fr-FR',o)}
+function esc(s){return(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function euros(n){const s=n<0?'−':'',v=Math.abs(n);return s+(v>=1e9?(v/1e9).toLocaleString('fr-FR',{maximumFractionDigits:1})+' Md€':v>=1e6?(v/1e6).toLocaleString('fr-FR',{maximumFractionDigits:1})+' M€':v.toLocaleString('fr-FR')+' €')}
+const licencie=e=>e.comptes&&e.comptes.profitable&&(!e.comptes.ca||e.comptes.resultat_net/e.comptes.ca>=0.03)&&(e.type==='plan social'||e.type==='fermeture');
+function ap(e){const a=e.argent_public||{},c=e.comptes;if(!e.argent_public&&!c&&!e.suite&&!e.emplois_note&&!e.groupe&&!e.lobbying&&!e.sanction_delais)return'';const p=[];
+ if(a.marches&&a.marches.n)p.push(`<a href="${esc(a.marches.url)}" target="_blank" rel="noopener">${a.marches.n} marché${a.marches.n>1?'s':''} public${a.marches.n>1?'s':''}</a> (titulaire unique), ${euros(a.marches.total)} notifiés (${a.marches.de===a.marches.a?a.marches.de:a.marches.de+'–'+a.marches.a})`);
+ if(a.marches&&a.marches.accords_cadres)p.push(`<span class="statut">${a.marches.accords_cadres.n} accord${a.marches.accords_cadres.n>1?'s':''}-cadre${a.marches.accords_cadres.n>1?'s':''} non comptés (plafonds de ${euros(a.marches.accords_cadres.plafond)}, pas des sommes versées)</span>`);
+ if(a.ademe)p.push(`<a href="${esc(a.ademe.url)}" target="_blank" rel="noopener">${a.ademe.n} aide${a.ademe.n>1?'s':''} ADEME</a> pour ${euros(a.ademe.total)}${a.ademe.exemples&&a.ademe.exemples[0]?' (dont '+euros(a.ademe.exemples[0].montant)+', '+esc(a.ademe.exemples[0].date||'')+')':''}`);
+ if(a.minimis)p.push(`<a href="${esc(a.minimis.url)}" target="_blank" rel="noopener">${a.minimis.n} aide${a.minimis.n>1?'s':''} de minimis</a> pour ${euros(a.minimis.total)}`);
+ let h='';
+ if(a.avant_annonce&&a.avant_annonce.total>0)h+=`<div>Avant ${a.avant_annonce.annee} (année de l'annonce) : <b>${euros(a.avant_annonce.total)}</b> de marchés et d'aides ADEME.</div>`;
+ if(p.length)h+=`<div>Argent public : ${p.join(' ; ')}</div>`;
+ if(c&&c.derniere_annee){h+=`<div>Comptes ${c.derniere_annee} : résultat net <b>${euros(c.resultat_net)}</b>${c.ca?' pour '+euros(c.ca)+' de CA':''} ; bénéfice ${c.annees_benefice} année${c.annees_benefice>1?'s':''} sur ${c.annees} publiée${c.annees>1?'s':''}. <a href="${esc(c.url)}" target="_blank" rel="noopener">Annuaire (État)</a>${fiche(e)?` · <a href="${fiche(e)}">Voir la fiche</a>`:''}</div>`;
+  if(licencie(e))h+=`<div class="alerte">Annonce un plan alors que les derniers comptes sont bénéficiaires (marge d'au moins 3 %).</div>`}
+ if(e.dependance_publique){const d=e.dependance_publique;h+=`<div>Commande publique : au moins environ <b>${Math.round(d.part_pct)} %</b> du chiffre d'affaires ${d.annee} (estimation par défaut : ${d.n_marches} marchés à titulaire unique étalés sur leur durée).</div>`}
+ if(e.suite){const m={liquidation:'liquidation',cession:'plan de cession',plan:'plan de redressement ou de sauvegarde','en cours':'aucune décision publiée à ce jour'};h+=`<div>Suite de la procédure : <b>${m[e.suite.issue]}</b>${e.suite.date?' ('+esc(e.suite.date)+')':''}.</div>`}
+ if(e.lobbying){const l=e.lobbying;h+=`<div>Lobbying déclaré à la HATVP : <b>${esc(l.depenses)}</b> en ${esc(l.annee)}${l.objets&&l.objets[0]?', notamment « '+esc(l.objets[0].slice(0,120))+' »':''}. <a href="${esc(l.url)}" target="_blank" rel="noopener">Fiche HATVP</a></div>`}
+ (e.sanction_delais||[]).forEach(s=>{h+=`<div>Amende de la DGCCRF pour retards de paiement aux fournisseurs : <b>${euros(s.montant)}</b> (${esc(s.date)}${s.niveau==='groupe'?', '+esc(s.nom)+', même groupe':''}). <a href="${esc(s.url)}" target="_blank" rel="noopener">Décision</a></div>`});
+ if(e.bonne_boite&&e.bonne_boite.fort)h+=`<div>France Travail estime, par algorithme, que cet établissement a un fort potentiel d’embauche (La Bonne Boîte).</div>`;
+ if(e.verif_urssaf){const v=e.verif_urssaf;h+=`<div>Vérification URSSAF : emploi salarié du secteur à ${esc(v.commune||'')} : ${fmt(v.avant)} (${v.annee_avant}) → <b>${fmt(v.apres)}</b> (${v.annee_apres}).</div>`}
+ if(e.groupe&&e.groupe.nom.toLowerCase().slice(0,6)!==(e.entreprise||'').toLowerCase().slice(0,6))h+=`<div>Groupe : <b>${esc(e.groupe.nom)}</b>${e.groupe.pays?' ('+esc(e.groupe.pays)+')':''} <span class="statut">[${esc(e.groupe.source)}]</span></div>`;
+ if(e.emplois_note)h+=`<div class="statut">Nombre d'emplois relevé dans l'article : ${esc(e.emplois_note)}.</div>`;
+ const l=e.lien==='nom_seul'?'Identifiée par son nom seul : il peut s\'agir de la maison mère ou d\'un homonyme, montants indicatifs.':e.lien==='nom+dep'?'Entreprise rapprochée par son nom (établissement présent dans le département) : à vérifier.':'';
+ if(l)h+=`<div class="statut">${l}</div>`;
+ return h?`<details class="ap"><summary>Détails : comptes, argent public…${licencie(e)?' · comptes bénéficiaires':''}</summary>${h}</details>`:''}
+function cls(t){return't-'+(t==='plan social'?'plan':t)}
+function rendre(){
+ const apf=document.getElementById('f-ap').value,t=document.getElementById('f-type').value,p=+document.getElementById('f-periode').value,dep=document.getElementById('f-dep').value;
+ const lim=p?new Date(Date.now()-p*864e5).toISOString().slice(0,10):'';
+ const ev=DATA.filter(e=>!e.sans_entreprise&&!e.exclu_totaux&&e.entreprise!==e.titre&&(!t||e.type===t)&&(!dep||e.dep===dep)&&(!lim||(e.date&&e.date>=lim))&&(!apf||(apf==='1'?e.argent_public:licencie(e))));
+ calque.clearLayers();const ul=document.getElementById('liste');ul.innerHTML='';
+ ev.forEach(e=>{
+  const li=document.createElement('li');
+  li.innerHTML=`<div><span class="tag ${cls(e.type)}">${esc(e.type)}</span><span class="ent">${fiche(e)?`<a href="${fiche(e)}">${esc(e.entreprise)}</a>`:esc(e.entreprise)}</span></div><div class="meta">${[e.commune?esc(e.commune)+(e.dep?' ('+esc(e.dep)+')':''):'',dateFr(e.date,e.date_precision)+(e.source==='BODACC'&&e.date_publication&&e.date_publication.slice(0,10)!==e.date?' (jugement), publié le '+dateFr(e.date_publication.slice(0,10)):''),emplois(e)].filter(Boolean).join(', ')}</div><div class="meta">${esc(e.detail||'')} <a href="${esc(e.url)}" target="_blank" rel="noopener">Source : ${esc(e.source)}</a>${e.statut?' <span class="statut">('+esc(e.statut)+')</span>':''}</div>${ap(e)}`;
+  ul.appendChild(li);
+  if(e.lat!=null){const r=Math.max(5,Math.min(22,3*Math.log10((e.emplois_min||50)+1)*1.6));
+   const m=L.circleMarker([e.lat,e.lon],{radius:r,color:'#fff',weight:1,fillColor:COUL[e.type]||'#555',fillOpacity:.85}).addTo(calque);
+   m.bindPopup(`<b>${esc(e.entreprise)}</b><br>${esc(e.type)}, ${dateFr(e.date,e.date_precision)}<br>${emplois(e)}<br><a href="${esc(e.url)}" target="_blank" rel="noopener">Source</a>${fiche(e)?` · <a href="${fiche(e)}">Fiche</a>`:''}`);
+   li.addEventListener('click',()=>{carte.setView([e.lat,e.lon],9);m.openPopup()})}
+ });
+ document.getElementById('titre-liste').textContent=ev.length+' événement'+(ev.length>1?'s':'')+' sur la carte, les plus récents en premier';
+ if(!ev.length)ul.innerHTML='<li class="meta">Aucun événement pour ces filtres. Élargissez la période ou changez de département.</li>';
+}
+Promise.all([fetch('data.json?v={{VER}}').then(r=>r.json()),fetch('fiches.json?v={{VER}}').then(r=>r.json()).catch(()=>({})),fetch('departements-noms.json?v={{VER}}').then(r=>r.json()).catch(()=>({}))]).then(([d,f,N])=>{FI=f;DN=N;DATA=d.evenements;
+ const deps=[...new Set(DATA.map(e=>e.dep).filter(Boolean))].sort();const s=document.getElementById('f-dep');
+ deps.forEach(x=>{const o=document.createElement('option');o.value=x;o.textContent=x+(DN[x]?' · '+DN[x]:'');s.appendChild(o)});
+ ['f-type','f-periode','f-dep','f-ap'].forEach(i=>document.getElementById(i).addEventListener('change',rendre));rendre()});
+</script>
+</body>
+</html>

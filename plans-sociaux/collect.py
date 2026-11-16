@@ -289,10 +289,19 @@ def fusion(evs):
     print("fusion des sources : %d annonces -> %d (%d lignes avec plusieurs sources)" % (sum(1 for e in evs if cand(e)), len(prim), sum(1 for p in prim if p.get("sources"))), file=sys.stderr)
     return garde
 
+def nettoie_nom(n):
+    """« A SAS (X) (X) » devient « A SAS (X) » ; « SAFRA (SAFRA) » devient « SAFRA » (doublons issus du registre)."""
+    import re as _re
+    if not n: return n
+    n2 = _re.sub(r"(\([^()]{1,60}\))(\s*\1)+", r"\1", n)
+    m = _re.match(r"^(.*?)\s*\(([^()]+)\)\s*$", n2)
+    if m and m.group(1).strip().lower() == m.group(2).strip().lower(): n2 = m.group(1).strip()
+    return n2.strip()
+
 if __name__ == "__main__":
     bodacc()
     # l'historique BODACC (rattrapage de tendance.py) reste en base ; seule la dernière année est publiée dans data.json
-    coupe = min("2025-01-01", (dt.date.today() - dt.timedelta(days=400)).isoformat())   # toute l'année 2025 et la suite
+    coupe = min("2023-01-01", (dt.date.today() - dt.timedelta(days=400)).isoformat())   # depuis janvier 2023 (presse rattrapée 2023-2024 le 14/11/2026 ; BODACC en cours de rattrapage)
     evs = [e for e in (json.loads(r[0]) for r in db.execute("select js from ev")) if (e.get("date_publication") or "") >= coupe] + cgt()
     # presse : publié seulement si l'article a été structuré et jugé pertinent par Gemini ; le reste attend une validation
     try:
@@ -397,6 +406,8 @@ if __name__ == "__main__":
             vus.add(k)
         propres.append(e)
     evs = propres
+    for e in evs:
+        if e.get("entreprise"): e["entreprise"] = nettoie_nom(e["entreprise"])
     geocode(evs); synth = None
     try:
         import aides; aides.enrichir(evs); evs = [e for e in evs if not e.get("hors_france")]
@@ -443,7 +454,7 @@ if __name__ == "__main__":
     for e in evs:
         e.setdefault("evenement_id", e.get("id"))
     evs.sort(key=lambda e: e.get("date") or "", reverse=True)
-    out = {"credit": commun.CREDIT, "licence": commun.LICENCE, "contact": "quentinclosset@gmail.com",
+    out = {"credit": commun.CREDIT, "licence": commun.LICENCE, "contact": "ADRESSE_DE_CONTACT",
            "maj": dt.datetime.now(dt.timezone.utc).isoformat(timespec="minutes"), "seuil_salaries": SEUIL,
            "n": len(evs), "synthese": synth, "evenements": evs}
     tmp = os.path.join(HERE, "public", "data.json.tmp")
