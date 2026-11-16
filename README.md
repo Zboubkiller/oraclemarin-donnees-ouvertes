@@ -1,6 +1,6 @@
 # Données ouvertes d'oraclemarin.fr
 
-Code de deux projets de données publiques, par Quentin Closset (Perros-Guirec).
+Code de deux projets de données publiques, par Quentin Closset (Perros-Guirec). Site de l'observatoire : [oraclemarin.fr](https://oraclemarin.fr/) · Méthode : [oraclemarin.fr/methode](https://oraclemarin.fr/methode/) · Autre dépôt : [ca-brule](https://github.com/Zboubkiller/ca-brule).
 
 - **`plans-sociaux/`** : suivi des plans sociaux et fermetures (presse, BODACC, liste CGT, Sirene), rapprochement par SIREN, aides publiques, comptes, lobbying. Site : https://oraclemarin.fr/plans-sociaux/
 - **`quotas-carbone/`** : carte et radar des quotas de CO₂ gratuits de 1 055 sites industriels français (registre européen des quotas), croisés avec les aides de l'ADEME, les déclarations de lobbying (HATVP), les annonces d'emplois et les dossiers de sols pollués (Géorisques). Site : https://oraclemarin.fr/quotas-carbone/
